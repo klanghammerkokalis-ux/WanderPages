@@ -5,49 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wander Pages — Custom Travel Activity Book Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
-    --paper:#F6F1E4;
-    --paper-dark:#EDE4CE;
-    --ink:#1E2A3A;
-    --ink-soft:#4F5C6B;
-    --teal:#2B5F60;
-    --stamp:#B23A2E;
-    --gold:#C9962B;
-    --line:#D8CDB2;
-    --white:#FFFDF8;
+    --paper:#FFF6E4;
+    --paper-dark:#FFEAC2;
+    --ink:#26344A;
+    --ink-soft:#5C6B80;
+    --teal:#1E8F82;
+    --stamp:#FF6B4A;
+    --gold:#F2A93B;
+    --line:#FFE0A3;
+    --white:#FFFDF7;
+    --sky:#7CC7E8;
+    --sky-deep:#4FA3D1;
+    --grass:#5FB86B;
+    --grass-deep:#3E9A4C;
+    --sun:#FFC93C;
+    --berry:#FF6F91;
   }
-  html,body{background:var(--paper);color:var(--ink);font-family:'Work Sans',sans-serif;}
+  html,body{background:var(--paper);color:var(--ink);font-family:'Nunito',sans-serif;}
   body{padding:0 0 80px;}
-  .wrap{max-width:760px;margin:0 auto;padding:48px 24px;}
-  header{text-align:center;margin-bottom:40px;position:relative;}
-  .stamp{
-    display:inline-block;border:2px solid var(--stamp);color:var(--stamp);
-    font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:13px;
-    letter-spacing:0.12em;text-transform:uppercase;padding:6px 14px;border-radius:3px;
-    transform:rotate(-3deg);margin-bottom:18px;
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px 48px;}
+  .hero-band{
+    background:linear-gradient(180deg,var(--sky-deep) 0%,var(--sky) 100%);
+    padding:36px 0 0;margin-bottom:0;overflow:hidden;position:relative;
   }
-  h1{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:52px;line-height:0.95;
-     letter-spacing:-0.01em;color:var(--ink);}
-  h1 span{color:var(--teal);}
-  header p{max-width:440px;margin:16px auto 0;color:var(--ink-soft);font-size:15px;line-height:1.5;}
+  header{text-align:center;margin-bottom:0;position:relative;max-width:760px;margin-left:auto;margin-right:auto;padding:0 24px;}
+  .stamp{
+    display:inline-flex;align-items:center;gap:6px;background:var(--sun);color:#7A4A00;
+    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;
+    letter-spacing:0.02em;padding:8px 18px;border-radius:999px;
+    transform:rotate(-4deg);margin-bottom:16px;box-shadow:0 3px 0 rgba(0,0,0,0.12);
+    border:2px solid rgba(255,255,255,0.6);
+  }
+  h1{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:48px;line-height:1;
+     letter-spacing:-0.01em;color:var(--white);text-shadow:0 3px 0 rgba(30,60,50,0.18);}
+  h1 span{color:var(--sun);}
+  header p{max-width:440px;margin:14px auto 0;color:rgba(255,255,255,0.95);font-size:15px;line-height:1.5;font-weight:600;text-shadow:0 1px 0 rgba(0,0,0,0.1);}
 
-  section{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:28px 26px;margin-bottom:18px;}
-  section h2{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:22px;text-transform:uppercase;
-    letter-spacing:0.02em;color:var(--teal);margin-bottom:4px;display:flex;align-items:center;gap:10px;}
-  section h2::before{content:attr(data-num);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);
-    border:1px solid var(--gold);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .scene-svg{width:100%;height:auto;display:block;margin-top:22px;}
+
+  section{background:var(--white);border:2px solid var(--line);border-radius:16px;padding:26px 24px;margin-bottom:18px;
+    box-shadow:0 3px 0 rgba(38,52,74,0.05);}
+  section h2{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:21px;
+    letter-spacing:0.01em;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+  section h2::before{content:attr(data-num);font-family:'Baloo 2',monospace;font-weight:700;font-size:14px;color:var(--white);
+    background:var(--teal);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .sub{color:var(--ink-soft);font-size:13px;margin-bottom:16px;}
 
   .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
-  .field label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;
+  .field label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
     color:var(--ink-soft);margin-bottom:6px;}
   .field input[type=text],.field input[type=number],.field textarea,.field select{
-    width:100%;border:1.5px solid var(--line);border-radius:4px;padding:10px 12px;font-family:'Work Sans',sans-serif;
-    font-size:14px;color:var(--ink);background:var(--paper);
+    width:100%;border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-family:'Nunito',sans-serif;
+    font-size:14px;font-weight:600;color:var(--ink);background:var(--paper);
   }
   .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--teal);}
   .field{margin-bottom:0;}
@@ -56,64 +70,69 @@
   .stop-row{display:flex;gap:8px;}
   .stop-row input{flex:1;}
   .stop-row button{background:none;border:none;color:var(--stamp);font-size:18px;cursor:pointer;padding:0 6px;}
-  .add-btn{background:none;border:1.5px dashed var(--line);border-radius:4px;padding:8px 12px;font-size:13px;
-    font-weight:600;color:var(--teal);cursor:pointer;width:100%;}
+  .add-btn{background:none;border:2px dashed var(--line);border-radius:10px;padding:8px 12px;font-size:13px;
+    font-weight:700;color:var(--teal);cursor:pointer;width:100%;}
   .add-btn:hover{border-color:var(--teal);}
 
   .transport-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
-  .transport-opt{border:1.5px solid var(--line);border-radius:4px;padding:10px 4px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-soft);}
-  .transport-opt.active{border-color:var(--teal);background:rgba(43,95,96,0.08);color:var(--teal);}
+  .transport-opt{border:2px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink-soft);}
+  .transport-opt.active{border-color:var(--teal);background:rgba(30,143,130,0.1);color:var(--teal);}
   @media(max-width:520px){.transport-grid{grid-template-columns:repeat(2,1fr);}}
 
-  .activity{border:1.5px solid var(--line);border-radius:4px;padding:14px 16px;margin-bottom:10px;}
+  .activity{border:2px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
   .activity-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .activity-head label.checkbox{
-    display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;
+    display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;
     text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;
   }
   .activity-head input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal);}
-  .activity-controls{display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .activity-controls{display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1.5px dashed var(--line);flex-wrap:wrap;}
   .activity-controls.hidden{display:none;}
   .diff-select{flex:1;min-width:140px;}
   .diff-select label{margin-bottom:4px;}
   .count-select{width:110px;}
 
   .book-size{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-  .size-opt{border:1.5px solid var(--line);border-radius:4px;padding:12px 10px;text-align:center;cursor:pointer;}
-  .size-opt.active{border-color:var(--teal);background:rgba(43,95,96,0.08);}
-  .size-opt .n{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:26px;color:var(--teal);}
-  .size-opt .lbl{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .size-opt{border:2px solid var(--line);border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;}
+  .size-opt.active{border-color:var(--teal);background:rgba(30,143,130,0.1);}
+  .size-opt .n{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:26px;color:var(--teal);}
+  .size-opt .lbl{font-size:12px;color:var(--ink-soft);margin-top:2px;font-weight:600;}
   .size-opt .price{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);margin-top:4px;font-weight:600;}
 
   .generate-btn{
-    width:100%;padding:16px;background:var(--stamp);color:var(--white);border:none;border-radius:5px;
-    font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:20px;text-transform:uppercase;
-    letter-spacing:0.03em;cursor:pointer;margin-top:26px;
+    width:100%;padding:17px;background:var(--stamp);color:var(--white);border:none;border-radius:14px;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:19px;
+    letter-spacing:0.01em;cursor:pointer;margin-top:26px;box-shadow:0 4px 0 #C7492F;
   }
-  .generate-btn:hover{background:#9a2f25;}
-  .generate-btn:disabled{background:var(--ink-soft);cursor:wait;}
+  .generate-btn:hover{background:#FF7D5F;transform:translateY(-1px);}
+  .generate-btn:active{box-shadow:0 1px 0 #C7492F;transform:translateY(3px);}
+  .generate-btn:disabled{background:var(--ink-soft);cursor:wait;box-shadow:0 4px 0 #45536A;}
   .status{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:10px;min-height:18px;}
 
-  .pricing-note{background:var(--paper-dark);border:1px solid var(--line);border-radius:6px;padding:16px 18px;font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:18px;}
+  .pricing-note{background:var(--paper-dark);border:2px dashed var(--gold);border-radius:14px;padding:16px 18px;font-size:13px;color:var(--ink-soft);line-height:1.6;margin:24px 0 18px;font-weight:600;}
   .pricing-note b{color:var(--ink);}
 
   /* Playful bits */
   .stamp{transition:transform 0.2s ease;}
-  .stamp:hover{transform:rotate(-3deg) scale(1.06);}
+  .stamp:hover{transform:rotate(-4deg) scale(1.06);}
 
-  .route-strip{max-width:520px;margin:22px auto 0;}
-  .route-svg{width:100%;height:auto;display:block;overflow:visible;}
-  .route-car{offset-path:path('M20,40 C120,10 180,55 280,25 S440,10 520,35 S620,15 680,30');
-    offset-rotate:0deg;animation:driveRoute 7s ease-in-out infinite;}
+  .route-car{offset-path:path('M-10,205 C130,175 190,225 320,198 S520,168 640,202 S760,182 810,198');
+    offset-rotate:0deg;animation:driveRoute 8s ease-in-out infinite;}
   @keyframes driveRoute{
     0%{offset-distance:0%;}
-    45%{offset-distance:100%;}
+    46%{offset-distance:100%;}
     50%{offset-distance:100%;}
-    95%{offset-distance:0%;}
+    96%{offset-distance:0%;}
     100%{offset-distance:0%;}
   }
+  .sun-bob{animation:sunBob 4s ease-in-out infinite;transform-origin:700px 52px;}
+  @keyframes sunBob{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+  .cloud{animation:cloudDrift 14s ease-in-out infinite;}
+  .cloud-b{animation-duration:18s;animation-direction:reverse;}
+  @keyframes cloudDrift{0%,100%{transform:translateX(0);}50%{transform:translateX(24px);}}
   @media (prefers-reduced-motion: reduce){
     .route-car{animation:none;offset-distance:0%;}
+    .sun-bob,.cloud{animation:none;}
   }
 
   .size-opt{transition:transform 0.15s ease, box-shadow 0.15s ease;}
@@ -128,26 +147,84 @@
 </head>
 <body>
 
-<div class="wrap">
+<div class="hero-band">
   <header>
-    <div class="stamp">Wander Pages</div>
+    <div class="stamp">🧭 Wander Pages</div>
     <h1>The <span>Custom</span><br>Trip Book</h1>
     <p>Tell us where they're headed. We'll turn the actual route into word searches, mazes, and puzzles — no two trips make the same book, so no two books look alike.</p>
-    <div class="route-strip" aria-hidden="true">
-      <svg viewBox="0 0 700 60" class="route-svg">
-        <path id="routePath" d="M20,40 C120,10 180,55 280,25 S440,10 520,35 S620,15 680,30" fill="none" stroke="#D8CDB2" stroke-width="3" stroke-dasharray="1 14" stroke-linecap="round"/>
-        <circle cx="20" cy="40" r="5" fill="#B23A2E"/>
-        <circle cx="680" cy="30" r="5" fill="#2B5F60"/>
-        <text x="8" y="20" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4F5C6B">START</text>
-        <text x="640" y="52" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4F5C6B">TA-DA</text>
-        <g class="route-car">
-          <circle r="9" fill="#C9962B"/>
-          <text x="0" y="3.5" font-size="11" text-anchor="middle">🚗</text>
-        </g>
-      </svg>
-    </div>
   </header>
 
+  <svg viewBox="0 0 800 230" class="scene-svg" aria-hidden="true" preserveAspectRatio="xMidYMax slice">
+    <!-- sun -->
+    <g class="sun-bob">
+      <circle cx="700" cy="52" r="34" fill="var(--sun)" stroke="#FFFFFF" stroke-width="3"/>
+      <circle cx="689" cy="46" r="4" fill="#7A4A00"/>
+      <circle cx="711" cy="46" r="4" fill="#7A4A00"/>
+      <path d="M685,60 Q700,72 715,60" fill="none" stroke="#7A4A00" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+    <!-- clouds -->
+    <g class="cloud cloud-a" fill="#FFFFFF" opacity="0.92">
+      <ellipse cx="120" cy="45" rx="30" ry="16"/><ellipse cx="145" cy="38" rx="22" ry="14"/><ellipse cx="95" cy="40" rx="20" ry="13"/>
+    </g>
+    <g class="cloud cloud-b" fill="#FFFFFF" opacity="0.85">
+      <ellipse cx="430" cy="30" rx="26" ry="14"/><ellipse cx="452" cy="24" rx="18" ry="11"/><ellipse cx="410" cy="26" rx="16" ry="10"/>
+    </g>
+    <!-- rolling hills along the horizon -->
+    <path d="M0,140 Q90,110 200,132 T400,128 T600,138 T800,124 L800,150 L0,150 Z" fill="var(--grass)"/>
+    <path d="M0,150 Q120,128 260,146 T560,140 T800,150 L800,230 L0,230 Z" fill="var(--grass-deep)"/>
+    <!-- barn -->
+    <g transform="translate(90,148)">
+      <rect x="0" y="18" width="52" height="34" rx="2" fill="#C8493A"/>
+      <path d="M-4,18 L26,-6 L56,18 Z" fill="#A8392C"/>
+      <rect x="20" y="34" width="14" height="18" fill="#5A2E22"/>
+      <rect x="4" y="24" width="10" height="10" fill="#F3D9A0"/>
+      <rect x="38" y="24" width="10" height="10" fill="#F3D9A0"/>
+    </g>
+    <!-- silo -->
+    <g transform="translate(158,150)">
+      <rect x="0" y="4" width="18" height="34" rx="9" fill="#C9CFD6"/>
+      <ellipse cx="9" cy="4" rx="9" ry="4" fill="#E3E7EC"/>
+      <path d="M0,-4 L18,-4 L9,4 Z" fill="#8E97A3"/>
+    </g>
+    <!-- pine trees -->
+    <g transform="translate(600,150)" fill="var(--grass-deep)">
+      <path d="M14,0 L28,26 L0,26 Z"/><path d="M14,10 L30,34 L-2,34 Z"/><rect x="11" y="34" width="6" height="9" fill="#6B4A2E"/>
+    </g>
+    <g transform="translate(650,158)" fill="var(--grass-deep)">
+      <path d="M11,0 L22,20 L0,20 Z"/><path d="M11,8 L24,27 L-2,27 Z"/><rect x="8.5" y="27" width="5" height="7" fill="#6B4A2E"/>
+    </g>
+    <!-- cow grazing -->
+    <g transform="translate(695,172)">
+      <ellipse cx="16" cy="10" rx="16" ry="10" fill="#FFFDF7"/>
+      <ellipse cx="6" cy="6" rx="4" ry="3" fill="#26344A"/>
+      <ellipse cx="20" cy="12" rx="4.5" ry="3.5" fill="#26344A"/>
+      <circle cx="30" cy="9" r="6" fill="#FFFDF7"/>
+      <circle cx="33" cy="7.5" r="1.2" fill="#26344A"/>
+      <rect x="4" y="18" width="3" height="7" fill="#FFFDF7"/><rect x="24" y="19" width="3" height="7" fill="#FFFDF7"/>
+    </g>
+    <!-- road -->
+    <path d="M-10,205 C130,175 190,225 320,198 S520,168 640,202 S760,182 810,198" fill="none" stroke="#4A5568" stroke-width="36" stroke-linecap="round"/>
+    <path id="routePath" d="M-10,205 C130,175 190,225 320,198 S520,168 640,202 S760,182 810,198" fill="none" stroke="#FFFDF7" stroke-width="4" stroke-dasharray="16 14" stroke-linecap="round" opacity="0.85"/>
+    <!-- markers -->
+    <g transform="translate(2,205)"><circle r="8" fill="var(--stamp)"/><text x="0" y="-14" font-family="Baloo 2, sans-serif" font-size="12" font-weight="700" fill="#FFFDF7" text-anchor="middle">START</text></g>
+    <g transform="translate(798,198)"><circle r="8" fill="var(--teal)"/><text x="-4" y="-14" font-family="Baloo 2, sans-serif" font-size="12" font-weight="700" fill="#FFFDF7" text-anchor="middle">TA-DA!</text></g>
+    <!-- car, following the road -->
+    <g class="route-car">
+      <g transform="translate(-24,-16)">
+        <ellipse cx="24" cy="30" rx="23" ry="4" fill="rgba(0,0,0,0.15)"/>
+        <path d="M2,22 Q2,10 16,9 L34,9 Q46,9 47,20 L47,24 Q47,27 44,27 L4,27 Q2,27 2,24 Z" fill="var(--stamp)"/>
+        <path d="M12,9 Q14,-1 22,-1 L30,-1 Q37,-1 39,9 Z" fill="var(--stamp)"/>
+        <path d="M14.5,8 Q16,2 22,2 L28.5,2 Q34,2 35.5,8 Z" fill="#BFEAF5"/>
+        <circle cx="13" cy="27" r="7" fill="#2B2B2B"/><circle cx="13" cy="27" r="3" fill="#C9CFD6"/>
+        <circle cx="38" cy="27" r="7" fill="#2B2B2B"/><circle cx="38" cy="27" r="3" fill="#C9CFD6"/>
+        <circle cx="45" cy="18" r="2.4" fill="#FFF4CC"/>
+        <rect x="2" y="16" width="4" height="4" rx="1" fill="#8E2A1E"/>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<div class="wrap">
   <div class="pricing-note">
     Pick a size below — <b>$19</b> gets the 26-page Standard book, <b>$24</b> the 36-page Deluxe glove-box classic. Every book is one-of-a-kind, built on the spot, ready to print at home.
   </div>
@@ -519,6 +596,89 @@ const REGION_SIGHTS = {
 };
 const GENERIC_SIGHTS = ['TRUCKS','BRIDGES','RIVERS','FARMS','TOWERS','SIGNS','STATIONS','DINERS'];
 
+/* ---- State birds: matched against the route's from/to/stops text ---- */
+const STATE_BIRDS = {
+  "Alabama":["Northern Flicker","songbird"],"Alaska":["Willow Ptarmigan","groundbird"],
+  "Arizona":["Cactus Wren","songbird"],"Arkansas":["Northern Mockingbird","songbird"],
+  "California":["California Quail","groundbird"],"Colorado":["Lark Bunting","songbird"],
+  "Connecticut":["American Robin","songbird"],"Delaware":["Delaware Blue Hen","groundbird"],
+  "Florida":["Northern Mockingbird","songbird"],"Georgia":["Brown Thrasher","songbird"],
+  "Hawaii":["Nene","waterbird"],"Idaho":["Mountain Bluebird","songbird"],
+  "Illinois":["Northern Cardinal","songbird-crest"],"Indiana":["Northern Cardinal","songbird-crest"],
+  "Iowa":["American Goldfinch","songbird"],"Kansas":["Western Meadowlark","songbird"],
+  "Kentucky":["Northern Cardinal","songbird-crest"],"Louisiana":["Brown Pelican","waterbird"],
+  "Maine":["Black-capped Chickadee","songbird"],"Maryland":["Baltimore Oriole","songbird"],
+  "Massachusetts":["Black-capped Chickadee","songbird"],"Michigan":["American Robin","songbird"],
+  "Minnesota":["Common Loon","waterbird"],"Mississippi":["Mockingbird","songbird"],
+  "Missouri":["Eastern Bluebird","songbird"],"Montana":["Western Meadowlark","songbird"],
+  "Nebraska":["Western Meadowlark","songbird"],"Nevada":["Mountain Bluebird","songbird"],
+  "New Hampshire":["Purple Finch","songbird"],"New Jersey":["American Goldfinch","songbird"],
+  "New Mexico":["Greater Roadrunner","groundbird"],"New York":["Eastern Bluebird","songbird"],
+  "North Carolina":["Northern Cardinal","songbird-crest"],"North Dakota":["Western Meadowlark","songbird"],
+  "Ohio":["Northern Cardinal","songbird-crest"],"Oklahoma":["Scissor-tailed Flycatcher","songbird"],
+  "Oregon":["Western Meadowlark","songbird"],"Pennsylvania":["Ruffed Grouse","groundbird"],
+  "Rhode Island":["Rhode Island Red","groundbird"],"South Carolina":["Carolina Wren","songbird"],
+  "South Dakota":["Ring-necked Pheasant","groundbird"],"Tennessee":["Northern Mockingbird","songbird"],
+  "Texas":["Northern Mockingbird","songbird"],"Utah":["California Gull","waterbird"],
+  "Vermont":["Hermit Thrush","songbird"],"Virginia":["Northern Cardinal","songbird-crest"],
+  "Washington":["American Goldfinch","songbird"],"West Virginia":["Northern Cardinal","songbird-crest"],
+  "Wisconsin":["American Robin","songbird"],"Wyoming":["Western Meadowlark","songbird"],
+  "District of Columbia":["Wood Thrush","songbird"]
+};
+const STATE_ABBR = {AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",
+  CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",
+  IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",
+  MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",
+  NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",
+  OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",
+  TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",
+  WY:"Wyoming",DC:"District of Columbia"};
+
+function extractRouteStates(from, to, stops){
+  const pieces = [from, ...stops, to].filter(Boolean);
+  const found = [];
+  pieces.forEach(piece=>{
+    let match = null;
+    // full state name, longest match first (so "North Carolina" beats "Carolina"-style false positives)
+    const names = Object.keys(STATE_BIRDS).sort((a,b)=> b.length-a.length);
+    for(const name of names){
+      const re = new RegExp(`\\b${name.replace(/\s+/g,'\\s+')}\\b`, 'i');
+      if(re.test(piece)){ match = name; break; }
+    }
+    if(!match){
+      // 2-letter abbreviation, e.g. "St. Charles, IL"
+      const abbrMatch = piece.match(/\b([A-Z]{2})\b/);
+      if(abbrMatch && STATE_ABBR[abbrMatch[1]]) match = STATE_ABBR[abbrMatch[1]];
+    }
+    if(match && !found.includes(match)) found.push(match);
+  });
+  return found;
+}
+
+/* Real route intelligence (actual driving route -> states crossed + waypoint towns)
+   via a Netlify function. Falls back silently to text-based extractRouteStates()
+   if the function isn't deployed, the API key isn't configured, or the request
+   fails/times out — the book still generates either way. */
+async function fetchRouteIntel(from, to, stops){
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 9000);
+    const res = await fetch('/.netlify/functions/route-intel', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({from, to, stops}),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.ok ? data : null;
+  } catch(e){
+    return null; // offline, function not deployed yet, key missing, timeout, etc.
+  }
+}
+
+
 function inferRegionType(from, to, stops){
   const text = [from, to, ...stops].join(' ').toLowerCase();
   for(const [region, data] of Object.entries(REGION_SIGHTS)){
@@ -735,29 +895,30 @@ function renderCover(doc, name, from, to, mode){
   doc.setDrawColor(216,205,178); doc.setLineWidth(0.6);
   doc.line(PAGE_W/2-30, 39, PAGE_W/2+30, 39);
 
-  const bubbleName = (name || "MY TRIP").toUpperCase();
-  const rawSize = Math.max(30, Math.min(64, 620/Math.max(4,bubbleName.length)));
-  drawBubbleText(doc, bubbleName, PAGE_W/2, 92, rawSize);
-  doc.setFont("helvetica","normal"); doc.setFontSize(13); doc.setTextColor(79,92,107);
-  doc.text("'S BIG TRIP COLORING BOOK", PAGE_W/2, 108, {align:"center"});
+  const bubbleLine1 = `${(name || "MY TRIP").toUpperCase()}'S BIG TRIP`;
+  const bubbleLine2 = "COLORING BOOK";
+  const longest = Math.max(bubbleLine1.length, bubbleLine2.length);
+  const rawSize = Math.max(18, Math.min(36, 640/Math.max(6,longest)));
+  drawBubbleText(doc, bubbleLine1, PAGE_W/2, 76, rawSize);
+  drawBubbleText(doc, bubbleLine2, PAGE_W/2, 76 + rawSize*0.88, rawSize);
 
   // daytime band: smiling sun + fluffy clouds
-  drawCoverSun(doc, PAGE_W/2, 148, 22);
-  drawFluffyCloud(doc, 46, 140, 1.15);
-  drawFluffyCloud(doc, PAGE_W-46, 156, 0.95);
+  drawCoverSun(doc, PAGE_W/2, 142, 19);
+  drawFluffyCloud(doc, 44, 134, 1.1);
+  drawFluffyCloud(doc, PAGE_W-44, 148, 0.92);
 
   doc.setDrawColor(216,205,178); doc.setLineWidth(0.6);
-  doc.line(34, 184, PAGE_W-34, 184);
+  doc.line(34, 170, PAGE_W-34, 170);
 
   // nighttime band: smiling moon + happy stars
-  drawCrescentMoon(doc, PAGE_W/2, 218, 20);
-  drawHappyStar(doc, 50, 208, 9);
-  drawHappyStar(doc, 168, 210, 7);
-  drawHappyStar(doc, 42, 234, 6);
-  drawHappyStar(doc, 176, 234, 9);
+  drawCrescentMoon(doc, PAGE_W/2, 200, 18);
+  drawHappyStar(doc, 48, 191, 8);
+  drawHappyStar(doc, 168, 193, 6.5);
+  drawHappyStar(doc, 40, 213, 5.5);
+  drawHappyStar(doc, 176, 213, 8);
 
   doc.setDrawColor(216,205,178);
-  doc.line(34, 244, PAGE_W-34, 244);
+  doc.line(34, 226, PAGE_W-34, 226);
 
   doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(79,92,107);
   if(from || to){
@@ -765,20 +926,20 @@ function renderCover(doc, name, from, to, mode){
     const fromW = doc.getTextWidth(fromTxt), toW = doc.getTextWidth(toTxt);
     const gap = 12, totalW = fromW + gap + toW;
     const startX = PAGE_W/2 - totalW/2;
-    doc.text(fromTxt, startX, 253);
+    doc.text(fromTxt, startX, 237);
     const arrowX1 = startX + fromW + 2.5, arrowX2 = startX + fromW + gap - 2.5;
     doc.setDrawColor(79,92,107); doc.setLineWidth(0.5);
-    doc.line(arrowX1, 251.3, arrowX2, 251.3);
-    doc.line(arrowX2, 251.3, arrowX2-1.6, 250.1);
-    doc.line(arrowX2, 251.3, arrowX2-1.6, 252.5);
-    doc.text(toTxt, startX + fromW + gap, 253);
+    doc.line(arrowX1, 235.3, arrowX2, 235.3);
+    doc.line(arrowX2, 235.3, arrowX2-1.6, 234.1);
+    doc.line(arrowX2, 235.3, arrowX2-1.6, 236.5);
+    doc.text(toTxt, startX + fromW + gap, 237);
   }
 
   doc.setDrawColor(201,150,43); doc.setLineWidth(0.7);
-  doc.circle(PAGE_W/2, 263, 8, "S");
+  doc.circle(PAGE_W/2, 249, 8, "S");
   doc.setFontSize(5.5); doc.setTextColor(201,150,43);
-  doc.text("MADE JUST", PAGE_W/2, 261.7, {align:"center", maxWidth:14});
-  doc.text("FOR YOU", PAGE_W/2, 265.2, {align:"center", maxWidth:14});
+  doc.text("MADE JUST", PAGE_W/2, 247.7, {align:"center", maxWidth:14});
+  doc.text("FOR YOU", PAGE_W/2, 251.2, {align:"center", maxWidth:14});
 }
 
 function addHeader(doc, label){
@@ -789,13 +950,19 @@ function addHeader(doc, label){
   doc.line(20,26,PAGE_W-20,26);
 }
 
-function renderRoutePage(doc, from, to, stops, sights, mode, sightsWereAuto){
+function renderRoutePage(doc, from, to, stops, sights, mode, sightsWereAuto, intel){
   doc.addPage(); addHeader(doc, "Our Route");
   let y = 40;
   doc.setFont("helvetica","normal"); doc.setFontSize(12); doc.setTextColor(30,42,58);
   doc.text(`Traveling by: ${mode.toUpperCase()}`, 20, y); y+=10;
   doc.text(`From: ${from||"—"}`, 20, y); y+=8;
-  doc.text(`To: ${to||"—"}`, 20, y); y+=12;
+  doc.text(`To: ${to||"—"}`, 20, y); y+=8;
+  if(intel && intel.distanceMiles){
+    doc.setTextColor(79,92,107); doc.setFontSize(10.5);
+    doc.text(`${intel.distanceMiles} miles • about ${intel.durationHours} hours of driving`, 20, y); y+=8;
+    doc.setTextColor(30,42,58); doc.setFontSize(12);
+  }
+  y += 4;
   if(stops.length){
     doc.setFont("helvetica","bold"); doc.text("Stops along the way:", 20, y); y+=8;
     doc.setFont("helvetica","normal");
@@ -1056,24 +1223,53 @@ function drawVehicle(doc, mode, cx, cy, scale){
     drawBird(doc, cx+30*s, cy-55*s, 0.9*s);
     drawBird(doc, cx+45*s, cy-48*s, 0.7*s);
   } else {
-    pill(doc, cx-50*s, cy-6*s, 100*s, 26*s, "S");
-    doc.roundedRect(cx-26*s, cy-24*s, 42*s, 22*s, 10*s, 10*s, "S");
-    doc.line(cx-13*s, cy-2*s, cx-13*s, cy-22*s);
-    doc.circle(cx-25*s, cy+22*s, 12*s, "S"); doc.circle(cx-25*s, cy+22*s, 4.5*s, "S");
-    doc.circle(cx+25*s, cy+22*s, 12*s, "S"); doc.circle(cx+25*s, cy+22*s, 4.5*s, "S");
+    // Single closed body silhouette: rear bumper -> trunk -> roof -> windshield -> hood -> front bumper -> rocker
+    // Front (headlight/hood) is +x, rear (trunk/exhaust) is -x.
+    doc.lines([
+      [-2*s,-6*s],   [8*s,-8*s],    [12*s,-4*s],   // rear bumper corner -> up to trunk
+      [10*s,-16*s],                                 // trunk -> roofline (rear pillar)
+      [28*s,0],                                      // flat roof
+      [10*s,16*s],                                   // roofline -> windshield base (front pillar)
+      [12*s,5*s],    [14*s,5*s],                     // cowl -> hood
+      [6*s,6*s],                                      // hood -> front fender
+      [-2*s,6*s],                                     // front bumper corner
+      [-26*s,2*s],                                    // rocker (front wheel to mid)
+      [-44*s,0],                                       // rocker (mid to rear wheel)
+      [-26*s,-6*s]                                      // rear bumper bottom back up to start
+    ], cx-50*s, cy+10*s, [1,1], "S", true);
+
+    // beltline + B-pillar dividing the cabin glass
+    doc.setLineWidth(1.0*s);
+    doc.line(cx-32*s, cy-8*s, cx+16*s, cy-8*s);
+    doc.line(cx-8*s, cy-24*s, cx-8*s, cy-8*s);
+    doc.line(cx-8*s, cy-8*s, cx-8*s, cy+10*s);
+    doc.setLineWidth((detailed?1.3:1.1)*s);
+
+    // wheels
+    doc.circle(cx-20*s, cy+20*s, 12*s, "S"); doc.circle(cx-20*s, cy+20*s, 4.5*s, "S");
+    doc.circle(cx+18*s, cy+20*s, 12*s, "S"); doc.circle(cx+18*s, cy+20*s, 4.5*s, "S");
     doc.setLineWidth(0.7*s);
-    [-25,25].forEach(dx=>{
-      for(let i=0;i<6;i++){ const ang=(Math.PI*2/6)*i; doc.line(cx+dx*s,cy+22*s, cx+dx*s+Math.cos(ang)*4.5*s, cy+22*s+Math.sin(ang)*4.5*s); }
+    [-20,18].forEach(dx=>{
+      for(let i=0;i<6;i++){ const ang=(Math.PI*2/6)*i; doc.line(cx+dx*s,cy+20*s, cx+dx*s+Math.cos(ang)*4.5*s, cy+20*s+Math.sin(ang)*4.5*s); }
     });
     doc.setLineWidth((detailed?1.3:1.1)*s);
-    doc.circle(cx-46*s, cy+2*s, 2.6*s, "F");
-    doc.line(cx-36*s, cy+7*s, cx-36*s, cy+19*s); // door line
-    doc.roundedRect(cx-8*s, cy+16*s, 16*s, 7*s, 1.5*s, 1.5*s, "S"); // license plate
+
+    // headlight + front bumper detail (front = +x)
+    doc.circle(cx+44*s, cy+10*s, 2.6*s, "F");
+    doc.roundedRect(cx+34*s, cy+13*s, 10*s, 5*s, 1.2*s, 1.2*s, "S"); // grille
+
+    // taillight + license plate + exhaust (rear = -x)
+    doc.circle(cx-48*s, cy+8*s, 2.2*s, "F");
+    doc.roundedRect(cx-42*s, cy+13*s, 14*s, 6*s, 1.5*s, 1.5*s, "S"); // license plate
     doc.setLineWidth(0.8*s);
-    doc.circle(cx-52*s, cy+8*s, 2*s, "S"); doc.circle(cx-57*s, cy+10*s, 1.4*s, "S"); // exhaust puffs
+    doc.circle(cx-54*s, cy+16*s, 1.8*s, "S"); doc.circle(cx-59*s, cy+18*s, 1.3*s, "S"); // exhaust puffs
+
+    // door handle
+    doc.setLineWidth(0.8*s);
+    doc.line(cx-2*s, cy-1*s, cx+5*s, cy-1*s);
+
     if(detailed){
-      drawMandalaFlower(doc, cx+2*s, cy-13*s, 8*s, 8); // cabin window panel
-      drawMandalaFlower(doc, cx-33*s, cy+5*s, 5*s, 6); // door panel
+      drawMandalaFlower(doc, cx-14*s, cy+1*s, 4.5*s, 6); // rear door panel
     }
   }
 }
@@ -1084,12 +1280,21 @@ function drawAnimalScene(doc, regionType, difficulty, scale){
   const cx = PAGE_W/2, cy = 175;
   doc.setDrawColor(30,42,58); doc.setLineWidth(1.3*s);
   if(regionType==='farm'){
-    pill(doc, cx-40*s, cy-8*s, 80*s, 34*s, "S");
-    doc.circle(cx-44*s, cy-20*s, 18*s, "S");
-    doc.ellipse(cx-54*s, cy-34*s, 5*s, 9*s, "S"); doc.ellipse(cx-36*s, cy-36*s, 5*s, 9*s, "S");
-    [cx-26*s,cx-2*s,cx+22*s].forEach(x=> pill(doc, x-4*s, cy+22*s, 8*s, 16*s, "S"));
-    drawMandalaFlower(doc, cx-2*s, cy+8*s, 11*s, 8);
-    drawDotRing(doc, cx-44*s, cy-20*s, 11*s, 10, 0.6*s);
+    // Cow: body, head with snout, ears, small horns, 4 legs, tail, spots
+    pill(doc, cx-38*s, cy-16*s, 76*s, 32*s, "S"); // body
+    doc.circle(cx-46*s, cy-26*s, 13*s, "S"); // head
+    doc.ellipse(cx-59*s, cy-21*s, 8*s, 6*s, "S"); // snout
+    doc.circle(cx-62*s, cy-23*s, 1.4*s, "F"); doc.circle(cx-62*s, cy-19*s, 1.4*s, "F"); // nostrils
+    doc.circle(cx-50*s, cy-30*s, 1.6*s, "F"); // eye
+    doc.ellipse(cx-53*s, cy-38*s, 4*s, 7*s, "S"); doc.ellipse(cx-38*s, cy-38*s, 4*s, 7*s, "S"); // ears
+    doc.setLineWidth(1.1*s);
+    doc.line(cx-51*s, cy-38*s, cx-54*s, cy-46*s); doc.line(cx-41*s, cy-38*s, cx-38*s, cy-46*s); // horns
+    doc.setLineWidth(1.3*s);
+    [cx-30*s,cx-12*s,cx+10*s,cx+26*s].forEach(x=> pill(doc, x-3.5*s, cy+14*s, 7*s, 18*s, "S")); // 4 legs
+    doc.lines([[7*s,9*s],[-3*s,9*s]], cx+38*s, cy-8*s, [1,1], "S", false); // tail
+    doc.circle(cx+42*s, cy+11*s, 3*s, "S"); // tail tuft
+    doc.ellipse(cx-14*s, cy-6*s, 9*s, 7*s, "S"); // spot 1
+    doc.ellipse(cx+12*s, cy+4*s, 7*s, 6*s, "S"); // spot 2
   } else if(regionType==='coastal'){
     doc.ellipse(cx,cy,34*s,20*s,"S");
     for(let i=0;i<3;i++){ doc.line(cx-30*s, cy-6*s+i*8*s, cx-52*s, cy-14*s+i*10*s); doc.line(cx+30*s, cy-6*s+i*8*s, cx+52*s, cy-14*s+i*10*s); }
@@ -1107,14 +1312,14 @@ function drawAnimalScene(doc, regionType, difficulty, scale){
     doc.circle(cx-30*s,cy-14*s,15*s,"S");
     doc.lines([[-4*s,-16*s],[8*s,4*s]], cx-38*s, cy-24*s, [1,1], "S", false);
     doc.lines([[4*s,-16*s],[-8*s,4*s]], cx-22*s, cy-24*s, [1,1], "S", false);
-    [cx-16*s,cx,cx+16*s].forEach(x=> pill(doc, x-3*s, cy+26*s, 6*s, 14*s, "S"));
+    [cx-22*s,cx-7*s,cx+7*s,cx+22*s].forEach(x=> pill(doc, x-3*s, cy+26*s, 6*s, 14*s, "S"));
     drawMandalaFlower(doc, cx+2*s, cy+10*s, 10*s, 8);
     drawDotRing(doc, cx-30*s, cy-14*s, 10*s, 8, 0.6*s);
   } else {
     doc.ellipse(cx,cy+6*s,30*s,20*s,"S");
     doc.circle(cx-28*s,cy-16*s,15*s,"S");
     doc.ellipse(cx-40*s,cy-22*s,6*s,11*s,"S"); doc.ellipse(cx-16*s,cy-22*s,6*s,11*s,"S");
-    [cx-16*s,cx,cx+16*s].forEach(x=> pill(doc, x-3*s, cy+24*s, 6*s, 14*s, "S"));
+    [cx-20*s,cx-6*s,cx+6*s,cx+20*s].forEach(x=> pill(doc, x-3*s, cy+24*s, 6*s, 14*s, "S"));
     doc.setLineWidth(1.3*s); doc.lines([[8*s,-6*s],[6*s,4*s]], cx+28*s, cy+2*s, [1,1], "S", false);
     doc.circle(cx-28*s,cy-10*s,1.6*s,"F");
     drawMandalaFlower(doc, cx, cy+8*s, 10*s, 8);
@@ -1191,7 +1396,99 @@ function renderColoringPage(doc, mode, difficulty, sceneIndex, regionType){
   doc.text("Color me in!", PAGE_W/2, 262, {align:"center"});
 }
 
-/* ============================== I-SPY BINGO ============================== */
+/* ============================== STATE BIRDS ============================== */
+function drawBirdBody(doc, family, cx, cy, scale){
+  const s = scale||1;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.3*s);
+  const bodyRx = family==='groundbird' ? 34*s : 30*s;
+  const bodyRy = family==='groundbird' ? 24*s : 20*s;
+  const neckLen = family==='waterbird' ? 24*s : 6*s;
+  const headCx = cx + bodyRx*0.55, headCy = cy - bodyRy*0.7 - neckLen*0.7;
+  if(family==='waterbird'){
+    doc.lines([[headCx-(cx+bodyRx*0.3), headCy-(cy-bodyRy*0.35)]], cx+bodyRx*0.3, cy-bodyRy*0.35, [1,1], "S", false);
+  }
+  doc.ellipse(cx, cy, bodyRx, bodyRy, "S"); // body
+  doc.ellipse(cx-bodyRx*0.12, cy+bodyRy*0.05, bodyRx*0.52, bodyRy*0.5, "S"); // folded wing
+  doc.setLineWidth(0.8*s);
+  for(let i=0;i<3;i++) doc.line(cx+bodyRx*0.2-i*bodyRx*0.18, cy+bodyRy*0.32, cx-bodyRx*0.15-i*bodyRx*0.18, cy+bodyRy*0.42);
+  doc.setLineWidth(1.3*s);
+  if(family==='groundbird'){
+    doc.triangle(cx-bodyRx*0.95,cy-bodyRy*0.05, cx-bodyRx*1.28,cy-bodyRy*0.3, cx-bodyRx*0.85,cy+bodyRy*0.3, "S");
+  } else {
+    doc.triangle(cx-bodyRx*0.95,cy, cx-bodyRx*1.55,cy-bodyRy*0.32, cx-bodyRx*1.42,cy+bodyRy*0.32, "S");
+  }
+  const headR = family==='groundbird' ? 13*s : 11*s;
+  doc.circle(headCx, headCy, headR, "S"); // head
+  if(family==='songbird-crest'){
+    doc.lines([[-3.5*s,-12*s],[7*s,0.5*s]], headCx-3*s, headCy-headR*0.75, [1,1], "S", false);
+  } else if(family==='groundbird'){
+    doc.lines([[3*s,-10*s],[1*s,3*s]], headCx-1*s, headCy-headR*0.9, [1,1], "S", false);
+  }
+  doc.triangle(headCx+headR*0.85, headCy-2.4*s, headCx+headR*0.85, headCy+3*s, headCx+headR*1.55, headCy+0.4*s, "S"); // beak
+  doc.circle(headCx+headR*0.15, headCy-headR*0.18, 1.5*s, "F"); // eye
+  doc.setLineWidth(1.1*s);
+  const legY = cy+bodyRy*0.82;
+  [cx-bodyRx*0.18, cx+bodyRx*0.12].forEach(lx=>{
+    doc.line(lx, legY, lx, legY+13*s);
+    if(family==='waterbird'){
+      doc.lines([[-4*s,3*s],[8*s,0],[-4*s,-3*s]], lx-4*s, legY+13*s, [1,1], "S", false);
+    } else {
+      doc.line(lx, legY+13*s, lx-4*s, legY+17*s);
+      doc.line(lx, legY+13*s, lx, legY+18*s);
+      doc.line(lx, legY+13*s, lx+4*s, legY+17*s);
+    }
+  });
+}
+function renderStateBirdPage(doc, stateName, index, mode){
+  doc.addPage(); addHeader(doc, "State Bird");
+  const entry = STATE_BIRDS[stateName] || ["Songbird","songbird"];
+  const [birdName, family] = entry;
+  const flip = index % 2 === 1;
+  drawSun(doc, flip ? 44 : PAGE_W-44, 50, 17);
+  drawCloud(doc, flip ? PAGE_W-56 : 56, 56, 1.15);
+  drawBirdBody(doc, family, PAGE_W/2, 172, 1.8);
+  drawGroundLine(doc, 236);
+  drawGrassTufts(doc, 236, 22, PAGE_W-22, 18);
+  drawFlower(doc, 34, 236, 1.15); drawFlower(doc, PAGE_W-34, 236, 1.15);
+  doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(30,42,58);
+  doc.text(birdName, PAGE_W/2, 214, {align:"center"});
+  doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(79,92,107);
+  doc.text(`State bird of ${stateName}`, PAGE_W/2, 223, {align:"center"});
+  doc.setFontSize(11); doc.text("Color me in!", PAGE_W/2, 262, {align:"center"});
+}
+
+/* ============================== LANDMARK STOPS ============================== */
+function renderLandmarkPage(doc, stopName, motifIndex){
+  doc.addPage(); addHeader(doc, "Landmark Stop");
+  const m = motifIndex % 4;
+  const flip = m % 2 === 1;
+  doc.setDrawColor(30,42,58);
+  drawSun(doc, flip ? 44 : PAGE_W-44, 50, 17);
+  drawCloud(doc, flip ? PAGE_W-56 : 56, 56, 1.15);
+  if(m===0){ drawPineTree(doc, 36, 232, 46); drawPineTree(doc, PAGE_W-36, 236, 34); }
+  else if(m===1){ drawFlag(doc, 40, 200, 0.9); drawFlag(doc, PAGE_W-40, 210, 0.7); }
+  else if(m===2){ drawBird(doc, 100, 40, 1); drawBird(doc, 120, 48, 0.75); drawPineTree(doc, PAGE_W-40, 234, 40); }
+  else { drawFlower(doc, 40, 200, 1); drawFlower(doc, PAGE_W-40, 208, 1); }
+
+  const signW = 156, signX = (PAGE_W-signW)/2, signY = 108;
+  doc.setLineWidth(1.4);
+  doc.line(PAGE_W/2-3, signY+50, PAGE_W/2-3, signY+82);
+  doc.line(PAGE_W/2+3, signY+50, PAGE_W/2+3, signY+82);
+  doc.roundedRect(signX, signY, signW, 50, 6, 6, "S");
+  doc.setLineWidth(0.6); doc.setDrawColor(216,205,178);
+  doc.roundedRect(signX+5, signY+5, signW-10, 40, 4, 4, "S");
+  doc.setDrawColor(30,42,58);
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(30,42,58);
+  doc.text("WELCOME TO", PAGE_W/2, signY+20, {align:"center"});
+  doc.setFontSize(15);
+  doc.text((stopName||"OUR STOP").toUpperCase(), PAGE_W/2, signY+34, {align:"center", maxWidth: signW-16});
+
+  drawGroundLine(doc, 236);
+  drawGrassTufts(doc, 236, 22, PAGE_W-22, 18);
+  doc.setFontSize(11); doc.setFont("helvetica","normal"); doc.setTextColor(79,92,107);
+  doc.text("A stop along our route — color me in!", PAGE_W/2, 262, {align:"center"});
+}
+
 const BINGO_FILLER = [
   "A red car","A cow","A dog looking out a window","A cloud shaped like something",
   "A gas station","A bridge","A truck","A billboard","A rainbow","A motorcycle",
@@ -1206,11 +1503,20 @@ function phraseForSight(word){
   const article = vowels.includes(lower[0]) ? 'An' : 'A';
   return `${article} ${lower}`;
 }
+function normalizeBingoPhrase(phrase){
+  let w = phrase.toLowerCase().trim();
+  w = w.replace(/^(a|an|the)\s+/, '');       // strip leading article
+  if(w.endsWith('ies')) w = w.slice(0,-3)+'y'; // babies -> baby
+  else if(w.endsWith('s') && !w.endsWith('ss')) w = w.slice(0,-1); // cows -> cow
+  return w;
+}
 function buildBingoItems(sightsList, placeWords, difficulty){
   const n = difficulty==='easy' ? 9 : difficulty==='medium' ? 16 : 25;
   const themed = sightsList.map(phraseForSight);
-  const pool = [...new Set([...themed, ...BINGO_FILLER])];
-  while(pool.length < n) pool.push(...BINGO_FILLER);
+  const seen = new Set(themed.map(normalizeBingoPhrase));
+  const filler = BINGO_FILLER.filter(f => !seen.has(normalizeBingoPhrase(f)));
+  const pool = [...themed, ...filler];
+  while(pool.length < n) pool.push(...filler);
   return pool.slice(0, n).sort(()=>Math.random()-0.5);
 }
 function renderBingoPage(doc, items, difficulty, mode){
@@ -1389,6 +1695,12 @@ document.getElementById('generateBtn').addEventListener('click', async ()=>{
   if(words.sightsWereAuto) sights = words.simple.map(w => w.charAt(0) + w.slice(1).toLowerCase());
   const regionType = inferRegionType(from, to, stops);
 
+  status.textContent = "Mapping your route…";
+  const intel = transportMode==='car' ? await fetchRouteIntel(from, to, stops) : null;
+  const routeStates = (intel && intel.states.length) ? intel.states : extractRouteStates(from, to, stops);
+  const landmarkStops = stops.length ? stops : ((intel && intel.waypointCities.length) ? intel.waypointCities : stops);
+  status.textContent = "Building your book…";
+
   const activities = {};
   document.querySelectorAll('.actToggle').forEach(cb=>{
     if(cb.checked){
@@ -1399,11 +1711,24 @@ document.getElementById('generateBtn').addEventListener('click', async ()=>{
 
   const doc = new jspdf.jsPDF({unit:"mm", format:"letter"});
   renderCover(doc, name, from, to, transportMode);
-  renderRoutePage(doc, from, to, stops, sights, transportMode, words.sightsWereAuto);
+  renderRoutePage(doc, from, to, stops, sights, transportMode, words.sightsWereAuto, intel);
+
+  let pageCount = 2; // cover + route
+
+  // Bonus pages built from the actual route: state birds + a landmark stop page per named stop
+  const bonusCap = Math.max(2, Math.floor(bookPages/6));
+  let bonusUsed = 0;
+  routeStates.forEach((st, i)=>{
+    if(bonusUsed >= bonusCap) return;
+    renderStateBirdPage(doc, st, i, transportMode); pageCount++; bonusUsed++;
+  });
+  landmarkStops.forEach((stop, i)=>{
+    if(bonusUsed >= bonusCap) return;
+    renderLandmarkPage(doc, stop, i); pageCount++; bonusUsed++;
+  });
 
   // repeat activity set to fill roughly to bookPages
   const activityKeys = Object.keys(activities);
-  let pageCount = 2; // cover + route
   let round = 0;
   let colorSceneIndex = 0;
   let dotsSceneIndex = 0;
