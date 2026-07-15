@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wander Pages — Custom Travel Activity Book Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --paper:#FFF6E4;
+    --paper-dark:#FFEAC2;
+    --ink:#26344A;
+    --ink-soft:#5C6B80;
+    --teal:#1E8F82;
+    --stamp:#FF6B4A;
+    --gold:#F2A93B;
+    --line:#FFE0A3;
+    --white:#FFFDF7;
+    --sky:#7CC7E8;
+    --sky-deep:#4FA3D1;
+    --grass:#5FB86B;
+    --grass-deep:#3E9A4C;
+    --sun:#FFC93C;
+    --berry:#FF6F91;
+  }
+  html,body{background:var(--paper);color:var(--ink);font-family:'Nunito',sans-serif;}
+  body{padding:0 0 80px;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px 48px;}
+  .hero-band{
+    background:linear-gradient(180deg,var(--sky-deep) 0%,var(--sky) 100%);
+    padding:36px 0 0;margin-bottom:0;overflow:hidden;position:relative;
+  }
+  header{text-align:center;margin-bottom:0;position:relative;max-width:760px;margin-left:auto;margin-right:auto;padding:0 24px;}
+  .stamp{
+    display:inline-flex;align-items:center;gap:6px;background:var(--sun);color:#7A4A00;
+    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;
+    letter-spacing:0.02em;padding:8px 18px;border-radius:999px;
+    transform:rotate(-4deg);margin-bottom:16px;box-shadow:0 3px 0 rgba(0,0,0,0.12);
+    border:2px solid rgba(255,255,255,0.6);
+  }
+  h1{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:48px;line-height:1;
+     letter-spacing:-0.01em;color:var(--white);text-shadow:0 3px 0 rgba(30,60,50,0.18);}
+  h1 span{color:var(--sun);}
+  header p{max-width:440px;margin:14px auto 0;color:rgba(255,255,255,0.95);font-size:15px;line-height:1.5;font-weight:600;text-shadow:0 1px 0 rgba(0,0,0,0.1);}
+
+  .scene-svg{width:100%;height:auto;display:block;margin-top:22px;}
+
+  section{background:var(--white);border:2px solid var(--line);border-radius:16px;padding:26px 24px;margin-bottom:18px;
+    box-shadow:0 3px 0 rgba(38,52,74,0.05);}
+  section h2{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:21px;
+    letter-spacing:0.01em;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+  section h2::before{content:attr(data-num);font-family:'Baloo 2',monospace;font-weight:700;font-size:14px;color:var(--white);
+    background:var(--teal);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .sub{color:var(--ink-soft);font-size:13px;margin-bottom:16px;}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
+    color:var(--ink-soft);margin-bottom:6px;}
+  .field input[type=text],.field input[type=number],.field textarea,.field select{
+    width:100%;border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-family:'Nunito',sans-serif;
+    font-size:14px;font-weight:600;color:var(--ink);background:var(--paper);
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--teal);}
+  .field{margin-bottom:0;}
+
+  .stops-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;}
+  .stop-row{display:flex;gap:8px;}
+  .stop-row input{flex:1;}
+  .stop-row button{background:none;border:none;color:var(--stamp);font-size:18px;cursor:pointer;padding:0 6px;}
+  .add-btn{background:none;border:2px dashed var(--line);border-radius:10px;padding:8px 12px;font-size:13px;
+    font-weight:700;color:var(--teal);cursor:pointer;width:100%;}
+  .add-btn:hover{border-color:var(--teal);}
+
+  .transport-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
+  .transport-opt{border:2px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink-soft);}
+  .transport-opt.active{border-color:var(--teal);background:rgba(30,143,130,0.1);color:var(--teal);}
+  @media(max-width:520px){.transport-grid{grid-template-columns:repeat(2,1fr);}}
+
+  .activity{border:2px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+  .activity-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .activity-head label.checkbox{
+    display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;
+    text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;
+  }
+  .activity-head input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal);}
+  .activity-controls{display:flex;gap:10px;margin-top:10px;padding-top:10px;border-top:1.5px dashed var(--line);flex-wrap:wrap;}
+  .activity-controls.hidden{display:none;}
+  .diff-select{flex:1;min-width:140px;}
+  .diff-select label{margin-bottom:4px;}
+  .count-select{width:110px;}
+
+  .book-size{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .size-opt{border:2px solid var(--line);border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;}
+  .size-opt.active{border-color:var(--teal);background:rgba(30,143,130,0.1);}
+  .size-opt .n{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:26px;color:var(--teal);}
+  .size-opt .lbl{font-size:12px;color:var(--ink-soft);margin-top:2px;font-weight:600;}
+  .size-opt .price{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);margin-top:4px;font-weight:600;}
+
+  .generate-btn{
+    width:100%;padding:17px;background:var(--stamp);color:var(--white);border:none;border-radius:14px;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:19px;
+    letter-spacing:0.01em;cursor:pointer;margin-top:26px;box-shadow:0 4px 0 #C7492F;
+  }
+  .generate-btn:hover{background:#FF7D5F;transform:translateY(-1px);}
+  .generate-btn:active{box-shadow:0 1px 0 #C7492F;transform:translateY(3px);}
+  .generate-btn:disabled{background:var(--ink-soft);cursor:wait;box-shadow:0 4px 0 #45536A;}
+  .status{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:10px;min-height:18px;}
+
+  .pricing-note{background:var(--paper-dark);border:2px dashed var(--gold);border-radius:14px;padding:16px 18px;font-size:13px;color:var(--ink-soft);line-height:1.6;margin:24px 0 18px;font-weight:600;}
+  .pricing-note b{color:var(--ink);}
+
+  /* Playful bits */
+  .stamp{transition:transform 0.2s ease;}
+  .stamp:hover{transform:rotate(-4deg) scale(1.06);}
+
+  .route-car{offset-path:path('M-10,205 C130,175 190,225 320,198 S520,168 640,202 S760,182 810,198');
+    offset-rotate:0deg;animation:driveRoute 8s ease-in-out infinite;}
+  @keyframes driveRoute{
+    0%{offset-distance:0%;}
+    46%{offset-distance:100%;}
+    50%{offset-distance:100%;}
+    96%{offset-distance:0%;}
+    100%{offset-distance:0%;}
+  }
+  .sun-bob{animation:sunBob 4s ease-in-out infinite;transform-origin:700px 52px;}
+  @keyframes sunBob{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+  .cloud{animation:cloudDrift 14s ease-in-out infinite;}
+  .cloud-b{animation-duration:18s;animation-direction:reverse;}
+  @keyframes cloudDrift{0%,100%{transform:translateX(0);}50%{transform:translateX(24px);}}
+  @media (prefers-reduced-motion: reduce){
+    .route-car{animation:none;offset-distance:0%;}
+    .sun-bob,.cloud{animation:none;}
+  }
+
+  .size-opt{transition:transform 0.15s ease, box-shadow 0.15s ease;}
+  .size-opt:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(30,42,58,0.08);}
+
+  .activity{transition:border-color 0.15s ease;}
+  .activity:has(.actToggle:checked){border-color:var(--teal);}
+
+  .generate-btn{transition:transform 0.12s ease;}
+  .generate-btn:not(:disabled):hover{transform:translateY(-1px) scale(1.01);}
+</style>
+</head>
+<body>
+
+<div class="hero-band">
+  <header>
+    <div class="stamp">🧭 Wander Pages</div>
+    <h1>The <span>Custom</span><br>Trip Book</h1>
+    <p>Tell us where they're headed. We'll turn the actual route into word searches, mazes, and puzzles — no two trips make the same book, so no two books look alike.</p>
+  </header>
+
+  <svg viewBox="0 0 800 230" class="scene-svg" aria-hidden="true" preserveAspectRatio="xMidYMax slice">
+    <!-- sun -->
+    <g class="sun-bob">
+      <circle cx="700" cy="52" r="34" fill="var(--sun)" stroke="#FFFFFF" stroke-width="3"/>
+      <circle cx="689" cy="46" r="4" fill="#7A4A00"/>
+      <circle cx="711" cy="46" r="4" fill="#7A4A00"/>
+      <path d="M685,60 Q700,72 715,60" fill="none" stroke="#7A4A00" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+    <!-- clouds -->
+    <g class="cloud cloud-a" fill="#FFFFFF" opacity="0.92">
+      <ellipse cx="120" cy="45" rx="30" ry="16"/><ellipse cx="145" cy="38" rx="22" ry="14"/><ellipse cx="95" cy="40" rx="20" ry="13"/>
+    </g>
+    <g class="cloud cloud-b" fill="#FFFFFF" opacity="0.85">
+      <ellipse cx="430" cy="30" rx="26" ry="14"/><ellipse cx="452" cy="24" rx="18" ry="11"/><ellipse cx="410" cy="26" rx="16" ry="10"/>
+    </g>
+    <!-- rolling hills along the horizon -->
+    <path d="M0,140 Q90,110 200,132 T400,128 T600,138 T800,124 L800,150 L0,150 Z" fill="var(--grass)"/>
+    <path d="M0,150 Q120,128 260,146 T560,140 T800,150 L800,230 L0,230 Z" fill="var(--grass-deep)"/>
+    <!-- barn -->
+    <g transform="translate(90,148)">
+      <rect x="0" y="18" width="52" height="34" rx="2" fill="#C8493A"/>
+      <path d="M-4,18 L26,-6 L56,18 Z" fill="#A8392C"/>
+      <rect x="20" y="34" width="14" height="18" fill="#5A2E22"/>
+      <rect x="4" y="24" width="10" height="10" fill="#F3D9A0"/>
+      <rect x="38" y="24" width="10" height="10" fill="#F3D9A0"/>
+    </g>
+    <!-- silo -->
+    <g transform="translate(158,150)">
+      <rect x="0" y="4" width="18" height="34" rx="9" fill="#C9CFD6"/>
+      <ellipse cx="9" cy="4" rx="9" ry="4" fill="#E3E7EC"/>
+      <path d="M0,-4 L18,-4 L9,4 Z" fill="#8E97A3"/>
+    </g>
+    <!-- pine trees -->
+    <g transform="translate(600,150)" fill="var(--grass-deep)">
+      <path d="M14,0 L28,26 L0,26 Z"/><path d="M14,10 L30,34 L-2,34 Z"/><rect x="11" y="34" width="6" height="9" fill="#6B4A2E"/>
+    </g>
+    <g transform="translate(650,158)" fill="var(--grass-deep)">
+      <path d="M11,0 L22,20 L0,20 Z"/><path d="M11,8 L24,27 L-2,27 Z"/><rect x="8.5" y="27" width="5" height="7" fill="#6B4A2E"/>
+    </g>
+    <!-- cow grazing -->
+    <g transform="translate(695,172)">
+      <ellipse cx="16" cy="10" rx="16" ry="10" fill="#FFFDF7"/>
+      <ellipse cx="6" cy="6" rx="4" ry="3" fill="#26344A"/>
+      <ellipse cx="20" cy="12" rx="4.5" ry="3.5" fill="#26344A"/>
+      <circle cx="30" cy="9" r="6" fill="#FFFDF7"/>
+      <circle cx="33" cy="7.5" r="1.2" fill="#26344A"/>
+      <rect x="4" y="18" width="3" height="7" fill="#FFFDF7"/><rect x="24" y="19" width="3" height="7" fill="#FFFDF7"/>
+    </g>
+    <!-- road -->
+    <path d="M-10,205 C130,175 190,225 320,198 S520,168 640,202 S760,182 810,198" fill="none" stroke="#4A5568" stroke-width="36" stroke-linecap="round"/>
+    <path id="routePath" d="M-10,205 C130,175 190,225 320,198 S520,168 640,202 S760,182 810,198" fill="none" stroke="#FFFDF7" stroke-width="4" stroke-dasharray="16 14" stroke-linecap="round" opacity="0.85"/>
+    <!-- markers -->
+    <g transform="translate(2,205)"><circle r="8" fill="var(--stamp)"/><text x="0" y="-14" font-family="Baloo 2, sans-serif" font-size="12" font-weight="700" fill="#FFFDF7" text-anchor="middle">START</text></g>
+    <g transform="translate(798,198)"><circle r="8" fill="var(--teal)"/><text x="-4" y="-14" font-family="Baloo 2, sans-serif" font-size="12" font-weight="700" fill="#FFFDF7" text-anchor="middle">TA-DA!</text></g>
+    <!-- car, following the road -->
+    <g class="route-car">
+      <g transform="translate(-24,-16)">
+        <ellipse cx="24" cy="30" rx="23" ry="4" fill="rgba(0,0,0,0.15)"/>
+        <path d="M2,22 Q2,10 16,9 L34,9 Q46,9 47,20 L47,24 Q47,27 44,27 L4,27 Q2,27 2,24 Z" fill="var(--stamp)"/>
+        <path d="M12,9 Q14,-1 22,-1 L30,-1 Q37,-1 39,9 Z" fill="var(--stamp)"/>
+        <path d="M14.5,8 Q16,2 22,2 L28.5,2 Q34,2 35.5,8 Z" fill="#BFEAF5"/>
+        <circle cx="13" cy="27" r="7" fill="#2B2B2B"/><circle cx="13" cy="27" r="3" fill="#C9CFD6"/>
+        <circle cx="38" cy="27" r="7" fill="#2B2B2B"/><circle cx="38" cy="27" r="3" fill="#C9CFD6"/>
+        <circle cx="45" cy="18" r="2.4" fill="#FFF4CC"/>
+        <rect x="2" y="16" width="4" height="4" rx="1" fill="#8E2A1E"/>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<div class="wrap">
+  <div class="pricing-note">
+    Pick a size below — <b>$19</b> gets the 26-page Standard book, <b>$24</b> the 36-page Deluxe glove-box classic. Every book is one-of-a-kind, built on the spot, ready to print at home.
+  </div>
+
+  <section data-num="01">
+    <h2 data-num="01">The traveler</h2>
+    <div class="row">
+      <div class="field"><label>Child's name</label><input type="text" id="childName" placeholder="e.g. Lucy"></div>
+      <div class="field"><label>Age</label><input type="number" id="childAge" min="2" max="14" value="6"></div>
+    </div>
+    <div class="sub" id="ageHint" style="margin-top:8px;margin-bottom:0;"></div>
+  </section>
+
+  <section data-num="02">
+    <h2 data-num="02">The route</h2>
+    <div class="sub">This is the part that makes it theirs, not a coloring page off the internet.</div>
+    <div class="row">
+      <div class="field"><label>Leaving from</label><input type="text" id="fromCity" placeholder="e.g. St. Charles, IL"></div>
+      <div class="field"><label>Going to</label><input type="text" id="toCity" placeholder="e.g. Yellowstone National Park"></div>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Stops along the way</label>
+      <div class="stops-list" id="stopsList"></div>
+      <button type="button" class="add-btn" id="addStop">+ Add a stop</button>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Interesting things you'll see (comma separated)</label>
+      <textarea id="sights" rows="2" placeholder="e.g. bison, geysers, waterfalls, pine forest"></textarea>
+    </div>
+    <div class="field">
+      <label>Traveling by</label>
+      <div class="transport-grid" id="transportGrid">
+        <div class="transport-opt active" data-mode="car">Car</div>
+        <div class="transport-opt" data-mode="plane">Plane</div>
+        <div class="transport-opt" data-mode="train">Train</div>
+        <div class="transport-opt" data-mode="boat">Boat</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-num="03">
+    <h2 data-num="03">Book size</h2>
+    <div class="sub">Bigger trip, bigger book. Includes cover, route page, and answer key.</div>
+    <div class="book-size" id="bookSize">
+      <div class="size-opt" data-pages="18" data-price="14" data-tier="mini">
+        <div class="n">18</div><div class="lbl">Mini — quick trips</div><div class="price">$14</div>
+      </div>
+      <div class="size-opt active" data-pages="26" data-price="19" data-tier="standard">
+        <div class="n">26</div><div class="lbl">Standard</div><div class="price">$19</div>
+      </div>
+      <div class="size-opt" data-pages="36" data-price="24" data-tier="deluxe">
+        <div class="n">36</div><div class="lbl">Deluxe</div><div class="price">$24</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-num="04">
+    <h2 data-num="04">Activities</h2>
+    <div class="sub">Ruthless on mazes, gentle on word searches? You're the boss. Each option lists a rough target age as a guide.</div>
+
+    <div class="activity">
+      <div class="activity-head">
+        <label class="checkbox"><input type="checkbox" class="actToggle" data-act="wordsearch" checked> Word search</label>
+      </div>
+      <div class="activity-controls" data-for="wordsearch">
+        <div class="field diff-select"><label>Difficulty</label>
+          <select class="diffSelect" data-act="wordsearch">
+            <option value="easy">Easy (8×8 grid) — ages 4–5</option>
+            <option value="medium" selected>Medium (11×11 grid) — ages 6–9</option>
+            <option value="hard">Hard (14×14, diagonals) — ages 10–12</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-head">
+        <label class="checkbox"><input type="checkbox" class="actToggle" data-act="maze" checked> Maze</label>
+      </div>
+      <div class="activity-controls" data-for="maze">
+        <div class="field diff-select"><label>Difficulty</label>
+          <select class="diffSelect" data-act="maze">
+            <option value="easy">Easy (8×8) — ages 3–5</option>
+            <option value="medium">Medium (12×12) — ages 6–8</option>
+            <option value="hard" selected>Hard (18×18) — ages 9–12</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-head">
+        <label class="checkbox"><input type="checkbox" class="actToggle" data-act="scramble" checked> Word scramble</label>
+      </div>
+      <div class="activity-controls" data-for="scramble">
+        <div class="field diff-select"><label>Difficulty</label>
+          <select class="diffSelect" data-act="scramble">
+            <option value="easy" selected>Easy (short words) — ages 5–6</option>
+            <option value="medium">Medium — ages 7–9</option>
+            <option value="hard">Hard (long words, extra shuffle) — ages 10–12</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-head">
+        <label class="checkbox"><input type="checkbox" class="actToggle" data-act="coloring" checked> Coloring pages</label>
+      </div>
+      <div class="activity-controls" data-for="coloring">
+        <div class="field diff-select"><label>Detail level</label>
+          <select class="diffSelect" data-act="coloring">
+            <option value="easy" selected>Simple (big shapes) — ages 2–3</option>
+            <option value="medium">Medium — ages 4–7</option>
+            <option value="hard">Detailed — ages 8–12</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-head">
+        <label class="checkbox"><input type="checkbox" class="actToggle" data-act="bingo" checked> I-spy bingo</label>
+      </div>
+      <div class="activity-controls" data-for="bingo">
+        <div class="field diff-select"><label>Grid size</label>
+          <select class="diffSelect" data-act="bingo">
+            <option value="easy" selected>3×3 (9 things) — ages 3–5</option>
+            <option value="medium">4×4 (16 things) — ages 6–8</option>
+            <option value="hard">5×5 (25 things) — ages 9–12</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-head">
+        <label class="checkbox"><input type="checkbox" class="actToggle" data-act="dots" checked> Connect the dots</label>
+      </div>
+      <div class="activity-controls" data-for="dots">
+        <div class="field diff-select"><label>Dot count</label>
+          <select class="diffSelect" data-act="dots">
+            <option value="easy" selected>Few dots (~10) — ages 3–5</option>
+            <option value="medium">More dots (~20) — ages 5–7</option>
+            <option value="hard">Lots of dots (~30) — ages 7–9</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-head">
+        <label class="checkbox"><input type="checkbox" class="actToggle" data-act="math" checked> Math mini-puzzles</label>
+      </div>
+      <div class="activity-controls" data-for="math">
+        <div class="field diff-select"><label>Difficulty</label>
+          <select class="diffSelect" data-act="math">
+            <option value="easy" selected>Counting (1–10) — ages 4–6</option>
+            <option value="medium">Addition &amp; subtraction — ages 7–9</option>
+            <option value="hard">Two-digit &amp; word problems — ages 9–12</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button class="generate-btn" id="generateBtn">Buy &amp; download — <span id="btnPrice">$19</span></button>
+  <div class="status" id="status"></div>
+  <div class="status" id="paidBadge" style="color:var(--teal);font-weight:600;"></div>
+</div>
+
+<script>
+/* ============================== STATE ============================== */
+let transportMode = "car";
+let bookPages = 26, bookPrice = 19, bookTier = "standard";
+let hasPaid = false;
+
+const STRIPE_LINKS = {
+  mini: "https://buy.stripe.com/cNi4gr3VHbwhf9Z9K308g01",
+  standard: "https://buy.stripe.com/eVq8wHbo98k51j98FZ08g02",
+  deluxe: "https://buy.stripe.com/28E00b63Pasde5V1dx08g03"
+};
+
+function refreshButtonLabel(){
+  const btn = document.getElementById('generateBtn');
+  const badge = document.getElementById('paidBadge');
+  if(hasPaid){
+    btn.innerHTML = 'Build my book — <span id="btnPrice">$'+bookPrice+'</span>';
+    badge.textContent = 'Payment confirmed — your ' + bookTier + ' book is ready to build.';
+  } else {
+    btn.innerHTML = 'Buy &amp; download — <span id="btnPrice">$'+bookPrice+'</span>';
+    badge.textContent = '';
+  }
+}
+
+(function checkPaymentReturn(){
+  const params = new URLSearchParams(window.location.search);
+  const paidTier = params.get('paid');
+  const sessionId = params.get('session_id');
+  if(paidTier && sessionId && STRIPE_LINKS[paidTier]){
+    hasPaid = true;
+    bookTier = paidTier;
+    const opt = document.querySelector(`.size-opt[data-tier="${paidTier}"]`);
+    if(opt){
+      document.querySelectorAll('.size-opt').forEach(o=>o.classList.remove('active'));
+      opt.classList.add('active');
+      bookPages = parseInt(opt.dataset.pages);
+      bookPrice = parseInt(opt.dataset.price);
+    }
+  }
+})();
+
+/* ============================== FORM STATE PERSISTENCE (survives the Stripe redirect) ============================== */
+const FORM_STATE_KEY = 'wanderpages_form_state_v1';
+
+function saveFormState(){
+  try{
+    const state = {
+      childName: document.getElementById('childName').value,
+      childAge: document.getElementById('childAge').value,
+      fromCity: document.getElementById('fromCity').value,
+      toCity: document.getElementById('toCity').value,
+      sights: document.getElementById('sights').value,
+      stops: [...document.querySelectorAll('.stop-row input')].map(i=>i.value),
+      transportMode: transportMode,
+      activities: [...document.querySelectorAll('.actToggle')].map(cb=>({act:cb.dataset.act, checked:cb.checked})),
+      difficulties: [...document.querySelectorAll('.diffSelect')].map(sel=>({act:sel.dataset.act, value:sel.value}))
+    };
+    localStorage.setItem(FORM_STATE_KEY, JSON.stringify(state));
+  } catch(e){ /* localStorage unavailable — non-fatal, just skip persistence */ }
+}
+
+function restoreFormState(){
+  let state;
+  try{
+    const raw = localStorage.getItem(FORM_STATE_KEY);
+    if(!raw) return;
+    state = JSON.parse(raw);
+  } catch(e){ return; }
+
+  document.getElementById('childName').value = state.childName || '';
+  document.getElementById('childAge').value = state.childAge || 6;
+  document.getElementById('fromCity').value = state.fromCity || '';
+  document.getElementById('toCity').value = state.toCity || '';
+  document.getElementById('sights').value = state.sights || '';
+
+  const stopsList = document.getElementById('stopsList');
+  stopsList.innerHTML = '';
+  (state.stops || []).forEach(val=>{
+    const row = document.createElement('div');
+    row.className = 'stop-row';
+    row.innerHTML = `<input type="text" placeholder="e.g. Mount Rushmore" value="${val.replace(/"/g,'&quot;')}"><button type="button" title="Remove">×</button>`;
+    row.querySelector('button').addEventListener('click', ()=> row.remove());
+    stopsList.appendChild(row);
+  });
+
+  if(state.transportMode){
+    transportMode = state.transportMode;
+    document.querySelectorAll('.transport-opt').forEach(o=>{
+      o.classList.toggle('active', o.dataset.mode === state.transportMode);
+    });
+  }
+
+  (state.activities || []).forEach(a=>{
+    const cb = document.querySelector(`.actToggle[data-act="${a.act}"]`);
+    if(cb){
+      cb.checked = a.checked;
+      const controls = document.querySelector(`.activity-controls[data-for="${a.act}"]`);
+      if(controls) controls.classList.toggle('hidden', !a.checked);
+    }
+  });
+  (state.difficulties || []).forEach(d=>{
+    const sel = document.querySelector(`.diffSelect[data-act="${d.act}"]`);
+    if(sel){ sel.value = d.value; manuallySetSafe(d.act); }
+  });
+}
+
+// manuallySet is declared later (age-suggestion block); guard so restore works regardless of script order
+function manuallySetSafe(act){
+  if(typeof manuallySet !== 'undefined') manuallySet.add(act);
+}
+
+document.getElementById('addStop').addEventListener('click', ()=>{
+  const list = document.getElementById('stopsList');
+  const row = document.createElement('div');
+  row.className = 'stop-row';
+  row.innerHTML = `<input type="text" placeholder="e.g. Mount Rushmore"><button type="button" title="Remove">×</button>`;
+  row.querySelector('button').addEventListener('click', ()=> row.remove());
+  list.appendChild(row);
+});
+
+document.getElementById('transportGrid').addEventListener('click', (e)=>{
+  const opt = e.target.closest('.transport-opt'); if(!opt) return;
+  document.querySelectorAll('.transport-opt').forEach(o=>o.classList.remove('active'));
+  opt.classList.add('active');
+  transportMode = opt.dataset.mode;
+});
+
+document.getElementById('bookSize').addEventListener('click', (e)=>{
+  const opt = e.target.closest('.size-opt'); if(!opt) return;
+  document.querySelectorAll('.size-opt').forEach(o=>o.classList.remove('active'));
+  opt.classList.add('active');
+  bookPages = parseInt(opt.dataset.pages);
+  bookPrice = parseInt(opt.dataset.price);
+  const newTier = opt.dataset.tier;
+  if(newTier !== bookTier) hasPaid = false; // switching tiers requires a new purchase
+  bookTier = newTier;
+  refreshButtonLabel();
+});
+
+document.querySelectorAll('.actToggle').forEach(cb=>{
+  cb.addEventListener('change', ()=>{
+    const controls = document.querySelector(`.activity-controls[data-for="${cb.dataset.act}"]`);
+    controls.classList.toggle('hidden', !cb.checked);
+  });
+});
+
+/* ============================== AGE-BASED DIFFICULTY SUGGESTIONS ============================== */
+const AGE_BANDS = {
+  wordsearch: [{max:5, diff:'easy'}, {max:9, diff:'medium'}, {max:Infinity, diff:'hard'}],
+  maze:       [{max:5, diff:'easy'}, {max:8, diff:'medium'}, {max:Infinity, diff:'hard'}],
+  scramble:   [{max:6, diff:'easy'}, {max:9, diff:'medium'}, {max:Infinity, diff:'hard'}],
+  coloring:   [{max:3, diff:'easy'}, {max:7, diff:'medium'}, {max:Infinity, diff:'hard'}],
+  bingo:      [{max:5, diff:'easy'}, {max:8, diff:'medium'}, {max:Infinity, diff:'hard'}],
+  dots:       [{max:5, diff:'easy'}, {max:7, diff:'medium'}, {max:Infinity, diff:'hard'}],
+  math:       [{max:6, diff:'easy'}, {max:9, diff:'medium'}, {max:Infinity, diff:'hard'}]
+};
+const manuallySet = new Set();
+
+function difficultyForAge(activity, age){
+  const bands = AGE_BANDS[activity];
+  const band = bands.find(b => age <= b.max);
+  return band ? band.diff : bands[bands.length-1].diff;
+}
+
+function applyAgeSuggestions(){
+  const age = parseInt(document.getElementById('childAge').value) || 6;
+  document.querySelectorAll('.diffSelect').forEach(sel=>{
+    const act = sel.dataset.act;
+    if(manuallySet.has(act)) return; // don't override a parent's manual pick
+    sel.value = difficultyForAge(act, age);
+  });
+  const hint = document.getElementById('ageHint');
+  hint.textContent = `Difficulty auto-picked for age ${age} — change any dropdown below to override just that activity.`;
+}
+
+document.querySelectorAll('.diffSelect').forEach(sel=>{
+  sel.addEventListener('change', ()=> manuallySet.add(sel.dataset.act));
+});
+
+document.getElementById('childAge').addEventListener('input', applyAgeSuggestions);
+applyAgeSuggestions();
+restoreFormState();
+applyAgeSuggestions(); // re-run in case restored age differs from the default
+
+/* ============================== WORD LIST BUILDER ============================== */
+/* ============================== REGIONAL SIGHT SUGGESTIONS ============================== */
+const REGION_SIGHTS = {
+  coastal:  {keys:['beach','coast','ocean','florida','california','san diego','malibu','myrtle','hawaii','maine','carolina','jersey shore'],
+             words:['SEAGULLS','SANDCASTLE','WAVES','LIGHTHOUSE','CRABS','SAILBOATS']},
+  mountain: {keys:['mountain','rockies','colorado','denver','aspen','tahoe','sierra','montana','wyoming','asheville'],
+             words:['DEER','PINETREES','EAGLES','WATERFALLS','SQUIRRELS']},
+  desert:   {keys:['desert','arizona','phoenix','vegas','tucson','new mexico','sedona'],
+             words:['CACTUS','LIZARDS','COYOTES','MESAS','ROADRUNNER']},
+  farm:     {keys:['illinois','iowa','indiana','ohio','wisconsin','kansas','nebraska','missouri','farm','wheat'],
+             words:['COWS','HORSES','BARNS','SILOS','TRACTORS','CORNFIELD']},
+  park:     {keys:['national park','yellowstone','yosemite','zion','glacier','grand canyon','smoky'],
+             words:['BISON','WILDLIFE','TRAILS','GEYSERS','RANGERS']}
+};
+const GENERIC_SIGHTS = ['TRUCKS','BRIDGES','RIVERS','FARMS','TOWERS','SIGNS','STATIONS','DINERS'];
+
+/* ---- State birds: matched against the route's from/to/stops text ---- */
+const STATE_BIRDS = {
+  "Alabama":["Northern Flicker","songbird"],"Alaska":["Willow Ptarmigan","groundbird"],
+  "Arizona":["Cactus Wren","songbird"],"Arkansas":["Northern Mockingbird","songbird"],
+  "California":["California Quail","groundbird"],"Colorado":["Lark Bunting","songbird"],
+  "Connecticut":["American Robin","songbird"],"Delaware":["Delaware Blue Hen","groundbird"],
+  "Florida":["Northern Mockingbird","songbird"],"Georgia":["Brown Thrasher","songbird"],
+  "Hawaii":["Nene","waterbird"],"Idaho":["Mountain Bluebird","songbird"],
+  "Illinois":["Northern Cardinal","songbird-crest"],"Indiana":["Northern Cardinal","songbird-crest"],
+  "Iowa":["American Goldfinch","songbird"],"Kansas":["Western Meadowlark","songbird"],
+  "Kentucky":["Northern Cardinal","songbird-crest"],"Louisiana":["Brown Pelican","waterbird"],
+  "Maine":["Black-capped Chickadee","songbird"],"Maryland":["Baltimore Oriole","songbird"],
+  "Massachusetts":["Black-capped Chickadee","songbird"],"Michigan":["American Robin","songbird"],
+  "Minnesota":["Common Loon","waterbird"],"Mississippi":["Mockingbird","songbird"],
+  "Missouri":["Eastern Bluebird","songbird"],"Montana":["Western Meadowlark","songbird"],
+  "Nebraska":["Western Meadowlark","songbird"],"Nevada":["Mountain Bluebird","songbird"],
+  "New Hampshire":["Purple Finch","songbird"],"New Jersey":["American Goldfinch","songbird"],
+  "New Mexico":["Greater Roadrunner","groundbird"],"New York":["Eastern Bluebird","songbird"],
+  "North Carolina":["Northern Cardinal","songbird-crest"],"North Dakota":["Western Meadowlark","songbird"],
+  "Ohio":["Northern Cardinal","songbird-crest"],"Oklahoma":["Scissor-tailed Flycatcher","songbird"],
+  "Oregon":["Western Meadowlark","songbird"],"Pennsylvania":["Ruffed Grouse","groundbird"],
+  "Rhode Island":["Rhode Island Red","groundbird"],"South Carolina":["Carolina Wren","songbird"],
+  "South Dakota":["Ring-necked Pheasant","groundbird"],"Tennessee":["Northern Mockingbird","songbird"],
+  "Texas":["Northern Mockingbird","songbird"],"Utah":["California Gull","waterbird"],
+  "Vermont":["Hermit Thrush","songbird"],"Virginia":["Northern Cardinal","songbird-crest"],
+  "Washington":["American Goldfinch","songbird"],"West Virginia":["Northern Cardinal","songbird-crest"],
+  "Wisconsin":["American Robin","songbird"],"Wyoming":["Western Meadowlark","songbird"],
+  "District of Columbia":["Wood Thrush","songbird"]
+};
+const STATE_ABBR = {AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",
+  CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",
+  IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",
+  MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",
+  NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",
+  OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",
+  TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",
+  WY:"Wyoming",DC:"District of Columbia"};
+
+function extractRouteStates(from, to, stops){
+  const pieces = [from, ...stops, to].filter(Boolean);
+  const found = [];
+  pieces.forEach(piece=>{
+    let match = null;
+    // full state name, longest match first (so "North Carolina" beats "Carolina"-style false positives)
+    const names = Object.keys(STATE_BIRDS).sort((a,b)=> b.length-a.length);
+    for(const name of names){
+      const re = new RegExp(`\\b${name.replace(/\s+/g,'\\s+')}\\b`, 'i');
+      if(re.test(piece)){ match = name; break; }
+    }
+    if(!match){
+      // 2-letter abbreviation, e.g. "St. Charles, IL"
+      const abbrMatch = piece.match(/\b([A-Z]{2})\b/);
+      if(abbrMatch && STATE_ABBR[abbrMatch[1]]) match = STATE_ABBR[abbrMatch[1]];
+    }
+    if(match && !found.includes(match)) found.push(match);
+  });
+  return found;
+}
+
+/* Real route intelligence (actual driving route -> states crossed + waypoint towns)
+   via a Netlify function. Falls back silently to text-based extractRouteStates()
+   if the function isn't deployed, the API key isn't configured, or the request
+   fails/times out — the book still generates either way. */
+async function fetchRouteIntel(from, to, stops){
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 9000);
+    const res = await fetch('/.netlify/functions/route-intel', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({from, to, stops}),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.ok ? data : null;
+  } catch(e){
+    return null; // offline, function not deployed yet, key missing, timeout, etc.
+  }
+}
+
+
+function inferRegionType(from, to, stops){
+  const text = [from, to, ...stops].join(' ').toLowerCase();
+  for(const [region, data] of Object.entries(REGION_SIGHTS)){
+    if(data.keys.some(k => text.includes(k))) return region;
+  }
+  return 'generic';
+}
+
+function inferDefaultSights(from, to, stops){
+  const text = [from, to, ...stops].join(' ').toLowerCase();
+  let matched = [];
+  Object.values(REGION_SIGHTS).forEach(region=>{
+    if(region.keys.some(k => text.includes(k))) matched.push(...region.words);
+  });
+  const combined = [...new Set([...matched, ...GENERIC_SIGHTS])];
+  return combined.slice(0, 8);
+}
+
+function buildWordList(){
+  const from = document.getElementById('fromCity').value.trim();
+  const to = document.getElementById('toCity').value.trim();
+  const stops = [...document.querySelectorAll('.stop-row input')].map(i=>i.value.trim()).filter(Boolean);
+  const sightsRaw = document.getElementById('sights').value.trim();
+  let sights = sightsRaw ? sightsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const sightsWereAuto = sights.length === 0;
+  if(sightsWereAuto) sights = inferDefaultSights(from, to, stops);
+
+  const cleanWord = s => s.replace(/[^a-zA-Z]/g,'').toUpperCase();
+  const placeWords = [from, to, ...stops]
+    .filter(Boolean).flatMap(s => s.split(/[\s,]+/)).map(cleanWord)
+    .filter(s => s.length >= 3 && s.length <= 12);
+  const sightWords = sights.map(cleanWord).filter(s => s.length >= 3 && s.length <= 12);
+
+  const all = [...new Set([...placeWords, ...sightWords])];
+  const simple = [...new Set(sightWords.length ? sightWords : placeWords)];
+
+  return {
+    all: all.length ? all : ["TRIP","ROAD","FAMILY","ADVENTURE","JOURNEY","EXPLORE"],
+    simple: simple.length ? simple : ["CAR","MAP","SUN","DOG","BUS","TRIP","ROAD","FUN"],
+    sightsWereAuto
+  };
+}
+
+/* ============================== WORD SEARCH ============================== */
+function generateWordSearch(words, difficulty){
+  const sizeMap = {easy:8, medium:11, hard:14};
+  const size = sizeMap[difficulty] || 11;
+  const allowDiagonal = difficulty === 'hard';
+  const dirs = allowDiagonal
+    ? [[0,1],[1,0],[1,1],[-1,1]]
+    : [[0,1],[1,0]];
+  const grid = Array.from({length:size}, ()=> Array(size).fill(null));
+  const placed = [];
+  const usable = words.filter(w=>w.length <= size).sort((a,b)=>b.length-a.length).slice(0, difficulty==='easy'?6:difficulty==='medium'?8:10);
+
+  usable.forEach(word=>{
+    let tries = 0, ok = false;
+    while(tries < 60 && !ok){
+      tries++;
+      const dir = dirs[Math.floor(Math.random()*dirs.length)];
+      const maxRow = dir[0]>=0 ? size - (dir[0]*(word.length-1)) : size;
+      const minRow = dir[0]<0 ? -dir[0]*(word.length-1) : 0;
+      const maxCol = dir[1]>=0 ? size - (dir[1]*(word.length-1)) : size;
+      const minCol = dir[1]<0 ? -dir[1]*(word.length-1) : 0;
+      if(maxRow<=minRow || maxCol<=minCol) continue;
+      const row = minRow + Math.floor(Math.random()*(maxRow-minRow));
+      const col = minCol + Math.floor(Math.random()*(maxCol-minCol));
+      let fits = true;
+      for(let i=0;i<word.length;i++){
+        const r = row + dir[0]*i, c = col + dir[1]*i;
+        if(grid[r][c] !== null && grid[r][c] !== word[i]){ fits = false; break; }
+      }
+      if(fits){
+        for(let i=0;i<word.length;i++){
+          const r = row + dir[0]*i, c = col + dir[1]*i;
+          grid[r][c] = word[i];
+        }
+        placed.push(word); ok = true;
+      }
+    }
+  });
+
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++)
+    if(grid[r][c]===null) grid[r][c] = letters[Math.floor(Math.random()*26)];
+
+  return {grid, placed, size};
+}
+
+/* ============================== MAZE (recursive backtracker) ============================== */
+function generateMaze(difficulty){
+  const sizeMap = {easy:8, medium:12, hard:18};
+  const n = sizeMap[difficulty] || 12;
+  const cells = Array.from({length:n}, ()=> Array.from({length:n}, ()=> ({N:true,S:true,E:true,W:true,visited:false})));
+  const stack = [[0,0]];
+  cells[0][0].visited = true;
+  const dirs = [['N',0,-1,'S'],['S',0,1,'N'],['E',1,0,'W'],['W',-1,0,'E']];
+  while(stack.length){
+    const [x,y] = stack[stack.length-1];
+    const neighbors = dirs
+      .map(([dir,dx,dy,opp])=>({dir,dx,dy,opp,nx:x+dx,ny:y+dy}))
+      .filter(d=> d.nx>=0 && d.nx<n && d.ny>=0 && d.ny<n && !cells[d.ny][d.nx].visited);
+    if(neighbors.length===0){ stack.pop(); continue; }
+    const pick = neighbors[Math.floor(Math.random()*neighbors.length)];
+    cells[y][x][pick.dir] = false;
+    cells[pick.ny][pick.nx][pick.opp] = false;
+    cells[pick.ny][pick.nx].visited = true;
+    stack.push([pick.nx, pick.ny]);
+  }
+  return {cells, n};
+}
+
+/* ============================== SCRAMBLE ============================== */
+function scrambleWord(word, difficulty){
+  let arr = word.split('');
+  if(difficulty === 'easy' && arr.length > 2){
+    // gentle: swap one adjacent pair near the middle so the word stays mostly recognizable
+    const i = 1 + Math.floor(Math.random()*(arr.length-2));
+    [arr[i],arr[i+1]] = [arr[i+1],arr[i]];
+    return arr.join('') === word ? scrambleWord(word, difficulty) : arr.join('');
+  }
+  const passes = difficulty==='medium' ? 2 : 3;
+  for(let p=0;p<passes;p++){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+  }
+  const result = arr.join('');
+  return result === word ? scrambleWord(word, difficulty) : result;
+}
+
+function wordsForScramble(simpleWords, difficulty){
+  const maxLen = difficulty==='easy' ? 5 : difficulty==='medium' ? 7 : 12;
+  const filler = ['CAR','SUN','MAP','DOG','BUS','FUN','TRIP','ROAD','SKY','TREE'];
+  let pool = simpleWords.filter(w => w.length <= maxLen);
+  if(pool.length < 5) pool = [...new Set([...pool, ...filler])];
+  return pool;
+}
+
+/* ============================== PDF RENDERING ============================== */
+const PAGE_W = 215.9, PAGE_H = 279.4;
+
+/* ============================== REAL ILLUSTRATION HOOK ==============================
+   Real line-art images, generated once via scripts/generate-coloring-library.js (see
+   that file + assets/coloring/README.md), live in /assets/coloring/. This reads
+   assets/coloring/manifest.json at generate-time to find them — so after running the
+   script once and pushing, no code edits are ever needed to add/remove art; just
+   re-run the script and push again. Until that script has been run, manifest.json
+   won't exist yet and coloring pages automatically use the built-in vector-drawn
+   scenes below — the book always generates successfully either way. */
+let _coloringAssetsCache = null;
+async function getColoringAssets(){
+  if(_coloringAssetsCache) return _coloringAssetsCache;
+  try{
+    const res = await fetch('assets/coloring/manifest.json', {cache:'no-store'});
+    _coloringAssetsCache = res.ok ? await res.json() : [];
+  } catch(e){ _coloringAssetsCache = []; }
+  return _coloringAssetsCache;
+}
+
+async function loadImageDataURL(url){
+  try{
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onloadend = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch(e){ return null; }
+}
+function loadImageElement(dataUrl){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=> resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+/* Fits a real illustration into the coloring-page content box (below the header,
+   above the "Color me in!" caption), preserving aspect ratio, and returns true on
+   success so the caller knows not to fall back to the vector scene. */
+async function tryRenderRealColoringImage(doc, assetPath){
+  const dataUrl = await loadImageDataURL(assetPath);
+  if(!dataUrl) return false;
+  try{
+    const img = await loadImageElement(dataUrl);
+    const boxX = 14, boxY = 32, boxW = PAGE_W-28, boxH = PAGE_H-32-24;
+    const fmt = /\.png$/i.test(assetPath) ? 'PNG' : 'JPEG';
+    const scale = Math.min(boxW/img.naturalWidth, boxH/img.naturalHeight);
+    const w = img.naturalWidth*scale, h = img.naturalHeight*scale;
+    const x = boxX + (boxW-w)/2, y = boxY + (boxH-h)/2;
+    doc.addPage(); addHeader(doc, "Coloring Page");
+    doc.addImage(dataUrl, fmt, x, y, w, h);
+    doc.setFontSize(11); doc.setTextColor(79,92,107);
+    doc.text("Color me in!", PAGE_W/2, PAGE_H-14, {align:"center"});
+    return true;
+  } catch(e){ return false; }
+}
+/* Drop-in replacement for renderColoringPage: uses real art when available,
+   otherwise falls back to the vector-drawn scene automatically. */
+async function renderColoringPageSmart(doc, mode, difficulty, sceneIndex, regionType){
+  const assets = await getColoringAssets();
+  if(assets.length){
+    const path = assets[sceneIndex % assets.length];
+    const ok = await tryRenderRealColoringImage(doc, path);
+    if(ok) return;
+  }
+  renderColoringPage(doc, mode, difficulty, sceneIndex, regionType);
+}
+
+function drawBubbleText(doc, text, cx, cy, fontSize){
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(fontSize);
+  const r = Math.max(1, fontSize*0.05);
+  const steps = 18;
+  doc.setTextColor(30,42,58);
+  for(let i=0;i<steps;i++){
+    const ang = (Math.PI*2/steps)*i;
+    doc.text(text, cx+Math.cos(ang)*r, cy+Math.sin(ang)*r, {align:"center"});
+  }
+  doc.setTextColor(246,241,228);
+  doc.text(text, cx, cy, {align:"center"});
+  doc.setTextColor(30,42,58);
+}
+function drawCoverSun(doc, cx, cy, r){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.6);
+  doc.circle(cx, cy, r, "S");
+  for(let i=0;i<8;i++){
+    const ang = (Math.PI*2/8)*i;
+    doc.line(cx+Math.cos(ang)*(r+4), cy+Math.sin(ang)*(r+4), cx+Math.cos(ang)*(r+13), cy+Math.sin(ang)*(r+13));
+  }
+  doc.setLineWidth(1.3);
+  doc.circle(cx-r*0.32, cy-r*0.12, r*0.11, "F");
+  doc.circle(cx+r*0.32, cy-r*0.12, r*0.11, "F");
+  doc.lines([[r*0.22,r*0.22, r*0.5,r*0.22, r*0.68,0]], cx-r*0.34, cy+r*0.15, [1,1], "S", false);
+}
+function drawFluffyCloud(doc, cx, cy, scale){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.5);
+  doc.circle(cx-13*scale, cy+3*scale, 8*scale, "S");
+  doc.circle(cx-2*scale, cy-6*scale, 10.5*scale, "S");
+  doc.circle(cx+11*scale, cy, 9.5*scale, "S");
+  doc.circle(cx+19*scale, cy+4*scale, 6.5*scale, "S");
+}
+function drawCrescentMoon(doc, cx, cy, r){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.6);
+  doc.circle(cx, cy, r, "S");
+  doc.setFillColor(246,241,228);
+  doc.circle(cx+r*0.55, cy-r*0.3, r*0.85, "F");
+  doc.circle(cx+r*0.55, cy-r*0.3, r*0.85, "S");
+  doc.setLineWidth(1.2);
+  doc.circle(cx-r*0.3, cy+r*0.05, r*0.09, "F");
+  doc.lines([[r*0.16,r*0.16, r*0.38,r*0.16, r*0.52,0]], cx-r*0.42, cy+r*0.32, [1,1], "S", false);
+}
+function drawHappyStar(doc, cx, cy, r){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.3);
+  const pts = [];
+  for(let i=0;i<10;i++){
+    const ang = (Math.PI*2/10)*i - Math.PI/2;
+    const rr = i%2===0 ? r : r*0.42;
+    pts.push([Math.cos(ang)*rr, Math.sin(ang)*rr]);
+  }
+  const deltas = [];
+  for(let i=1;i<pts.length;i++) deltas.push([pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]]);
+  deltas.push([pts[0][0]-pts[pts.length-1][0], pts[0][1]-pts[pts.length-1][1]]);
+  doc.lines(deltas, cx+pts[0][0], cy+pts[0][1], [1,1], "S", true);
+  doc.setLineWidth(0.9);
+  doc.circle(cx-r*0.16, cy-r*0.04, r*0.05, "F");
+  doc.circle(cx+r*0.16, cy-r*0.04, r*0.05, "F");
+  doc.lines([[r*0.1,r*0.08, r*0.22,r*0.08, r*0.3,0]], cx-r*0.15, cy+r*0.06, [1,1], "S", false);
+}
+
+function renderCover(doc, name, from, to, mode){
+  doc.setFillColor(246,241,228); doc.rect(0,0,PAGE_W,PAGE_H,"F");
+  doc.setDrawColor(178,58,46); doc.setLineWidth(1.2);
+  doc.roundedRect(14,14,PAGE_W-28,PAGE_H-28,3,3,"S");
+
+  doc.setTextColor(30,42,58);
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(15);
+  doc.text("WANDER PAGES", PAGE_W/2, 34, {align:"center"});
+  doc.setDrawColor(216,205,178); doc.setLineWidth(0.6);
+  doc.line(PAGE_W/2-30, 39, PAGE_W/2+30, 39);
+
+  const bubbleLine1 = `${(name || "MY TRIP").toUpperCase()}'S BIG TRIP`;
+  const bubbleLine2 = "COLORING BOOK";
+  const longest = Math.max(bubbleLine1.length, bubbleLine2.length);
+  const rawSize = Math.max(18, Math.min(36, 640/Math.max(6,longest)));
+  drawBubbleText(doc, bubbleLine1, PAGE_W/2, 76, rawSize);
+  drawBubbleText(doc, bubbleLine2, PAGE_W/2, 76 + rawSize*0.88, rawSize);
+
+  // daytime band: smiling sun + fluffy clouds
+  drawCoverSun(doc, PAGE_W/2, 142, 19);
+  drawFluffyCloud(doc, 44, 134, 1.1);
+  drawFluffyCloud(doc, PAGE_W-44, 148, 0.92);
+
+  doc.setDrawColor(216,205,178); doc.setLineWidth(0.6);
+  doc.line(34, 170, PAGE_W-34, 170);
+
+  // nighttime band: smiling moon + happy stars
+  drawCrescentMoon(doc, PAGE_W/2, 200, 18);
+  drawHappyStar(doc, 48, 191, 8);
+  drawHappyStar(doc, 168, 193, 6.5);
+  drawHappyStar(doc, 40, 213, 5.5);
+  drawHappyStar(doc, 176, 213, 8);
+
+  doc.setDrawColor(216,205,178);
+  doc.line(34, 226, PAGE_W-34, 226);
+
+  doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(79,92,107);
+  if(from || to){
+    const fromTxt = from || "?", toTxt = to || "?";
+    const fromW = doc.getTextWidth(fromTxt), toW = doc.getTextWidth(toTxt);
+    const gap = 12, totalW = fromW + gap + toW;
+    const startX = PAGE_W/2 - totalW/2;
+    doc.text(fromTxt, startX, 237);
+    const arrowX1 = startX + fromW + 2.5, arrowX2 = startX + fromW + gap - 2.5;
+    doc.setDrawColor(79,92,107); doc.setLineWidth(0.5);
+    doc.line(arrowX1, 235.3, arrowX2, 235.3);
+    doc.line(arrowX2, 235.3, arrowX2-1.6, 234.1);
+    doc.line(arrowX2, 235.3, arrowX2-1.6, 236.5);
+    doc.text(toTxt, startX + fromW + gap, 237);
+  }
+
+  doc.setDrawColor(201,150,43); doc.setLineWidth(0.7);
+  doc.circle(PAGE_W/2, 249, 8, "S");
+  doc.setFontSize(5.5); doc.setTextColor(201,150,43);
+  doc.text("MADE JUST", PAGE_W/2, 247.7, {align:"center", maxWidth:14});
+  doc.text("FOR YOU", PAGE_W/2, 251.2, {align:"center", maxWidth:14});
+}
+
+function addHeader(doc, label){
+  doc.setFillColor(246,241,228); doc.rect(0,0,PAGE_W,PAGE_H,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(30,42,58);
+  doc.text(label, 20, 22);
+  doc.setDrawColor(216,205,178); doc.setLineWidth(0.5);
+  doc.line(20,26,PAGE_W-20,26);
+}
+
+function renderRoutePage(doc, from, to, stops, sights, mode, sightsWereAuto, intel){
+  doc.addPage(); addHeader(doc, "Our Route");
+  let y = 40;
+  doc.setFont("helvetica","normal"); doc.setFontSize(12); doc.setTextColor(30,42,58);
+  doc.text(`Traveling by: ${mode.toUpperCase()}`, 20, y); y+=10;
+  doc.text(`From: ${from||"—"}`, 20, y); y+=8;
+  doc.text(`To: ${to||"—"}`, 20, y); y+=8;
+  if(intel && intel.distanceMiles){
+    doc.setTextColor(79,92,107); doc.setFontSize(10.5);
+    doc.text(`${intel.distanceMiles} miles • about ${intel.durationHours} hours of driving`, 20, y); y+=8;
+    doc.setTextColor(30,42,58); doc.setFontSize(12);
+  }
+  y += 4;
+  if(stops.length){
+    doc.setFont("helvetica","bold"); doc.text("Stops along the way:", 20, y); y+=8;
+    doc.setFont("helvetica","normal");
+    stops.forEach(s=>{ doc.text(`• ${s}`, 26, y); y+=7; });
+    y+=4;
+  }
+  if(sights.length){
+    doc.setFont("helvetica","bold"); doc.text("Keep an eye out for:", 20, y); y+=8;
+    doc.setFont("helvetica","normal");
+    sights.forEach(s=>{ doc.text(`• ${s}`, 26, y); y+=7; });
+    y += 4;
+    if(sightsWereAuto){
+      doc.setFont("helvetica","italic"); doc.setFontSize(9); doc.setTextColor(79,92,107);
+      doc.text("(a few likely sights for this route — add your own next time for something even more specific!)", 20, y, {maxWidth: PAGE_W-40});
+    }
+  }
+}
+
+function renderWordSearchPage(doc, ws, mode){
+  doc.addPage(); addHeader(doc, "Word Search");
+  drawVehicle(doc, mode||"car", PAGE_W-22, 31, 0.13);
+  const {grid,size} = ws;
+  const cell = 176/size;
+  const startX = (PAGE_W - cell*size)/2, startY = 36;
+  doc.setFont("courier","bold"); doc.setFontSize(cell*2.0); doc.setTextColor(30,42,58);
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++)
+    doc.text(grid[r][c], startX + c*cell + cell/2, startY + r*cell + cell*0.68, {align:"center"});
+  doc.setDrawColor(216,205,178); doc.setLineWidth(0.6);
+  doc.rect(startX-5, startY-7, cell*size+10, cell*size+10);
+
+  let y = startY + cell*size + 24;
+  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(30,42,58);
+  doc.text("Find these words:", PAGE_W/2, y, {align:"center"}); y+=12;
+  doc.setFont("helvetica","normal"); doc.setFontSize(12.5);
+  let x = 25;
+  const rowWords = [];
+  let currentRow = [];
+  ws.placed.forEach(w=>{
+    const wWidth = w.length*3.4+16;
+    if(x + wWidth > PAGE_W-25){ rowWords.push(currentRow); currentRow=[]; x=25; }
+    currentRow.push(w); x += wWidth;
+  });
+  if(currentRow.length) rowWords.push(currentRow);
+  rowWords.forEach(row=>{
+    const rowText = row.join('     ');
+    doc.text(rowText, PAGE_W/2, y, {align:"center"});
+    y += 11;
+  });
+}
+
+function drawFlag(doc, cx, cy, scale){
+  scale = scale || 1;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(0.9*scale);
+  doc.line(cx, cy+10*scale, cx, cy-14*scale);
+  const fw = 10*scale, fh = 7*scale;
+  for(let r=0;r<2;r++){
+    for(let c=0;c<3;c++){
+      if((r+c)%2===0) doc.setFillColor(30,42,58); else doc.setFillColor(246,241,228);
+      doc.rect(cx + c*(fw/3), cy-14*scale + r*(fh/2), fw/3, fh/2, "F");
+    }
+  }
+  doc.setDrawColor(30,42,58); doc.rect(cx, cy-14*scale, fw, fh, "S");
+}
+function renderMazePage(doc, maze, mode){
+  doc.addPage(); addHeader(doc, "Maze");
+  const {cells,n} = maze;
+  const size = 205;
+  const cell = size/n;
+  const startX = (PAGE_W-size)/2, startY = 38;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(0.7);
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+    const c = cells[y][x];
+    const px = startX + x*cell, py = startY + y*cell;
+    if(c.N) doc.line(px,py,px+cell,py);
+    if(c.S) doc.line(px,py+cell,px+cell,py+cell);
+    if(c.E) doc.line(px+cell,py,px+cell,py+cell);
+    if(c.W) doc.line(px,py,px,py+cell);
+  }
+  const iconScale = Math.max(0.13, Math.min(0.3, (startX + cell/2 - 6)/50));
+  drawVehicle(doc, mode||"car", startX+cell/2, startY+cell/2, iconScale);
+  drawFlag(doc, startX+size-cell/2-3, startY+size-cell/2+8, iconScale*1.3);
+  doc.setFontSize(11); doc.setTextColor(79,92,107);
+  doc.text("START", startX, startY-5); doc.text("FINISH", startX+size-20, startY+size+12);
+}
+
+function renderScramblePage(doc, words, difficulty, mode){
+  doc.addPage(); addHeader(doc, "Word Scramble");
+  drawVehicle(doc, mode||"car", PAGE_W-22, 31, 0.13);
+  let y = 55;
+  doc.setFont("helvetica","normal"); doc.setFontSize(13); doc.setTextColor(30,42,58);
+  const pool = wordsForScramble(words, difficulty).slice().sort(()=>Math.random()-0.5);
+  pool.slice(0,8).forEach(w=>{
+    const scrambled = scrambleWord(w, difficulty);
+    doc.setFont("courier","bold"); doc.setFontSize(26);
+    doc.text(scrambled.split('').join(' '), 26, y);
+    doc.setDrawColor(216,205,178); doc.setLineWidth(0.6);
+    doc.line(148, y+3, PAGE_W-26, y+3);
+    y += 27;
+  });
+}
+
+/* ============================== COLORING PAGE ART ============================== */
+/* ---- Mandala decoration primitives ---- */
+function drawDotRing(doc, cx, cy, r, count, dotR){
+  doc.setDrawColor(30,42,58);
+  for(let i=0;i<count;i++){
+    const ang = (Math.PI*2/count)*i;
+    doc.circle(cx+Math.cos(ang)*r, cy+Math.sin(ang)*r, dotR||1, "S");
+  }
+}
+function drawPetal(doc, cx, cy, angle, len, wid, style){
+  const cosA = Math.cos(angle), sinA = Math.sin(angle);
+  const rot = (x,y) => [x*cosA - y*sinA, y*cosA + x*sinA];
+  const raw = [[0,0],[len*0.32,wid/2],[len,0],[len*0.32,-wid/2]];
+  const abs = raw.map(([x,y])=>{ const [rx,ry] = rot(x,y); return [cx+rx, cy+ry]; });
+  const deltas = [];
+  for(let i=1;i<abs.length;i++) deltas.push([abs[i][0]-abs[i-1][0], abs[i][1]-abs[i-1][1]]);
+  doc.lines(deltas, abs[0][0], abs[0][1], [1,1], style||"S", true);
+}
+function drawMandalaFlower(doc, cx, cy, r, petalCount){
+  petalCount = petalCount || 8;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(0.6);
+  for(let i=0;i<petalCount;i++) drawPetal(doc, cx, cy, (Math.PI*2/petalCount)*i, r, r*0.44, "S");
+  doc.circle(cx, cy, r*0.24, "S");
+  drawDotRing(doc, cx, cy, r*1.18, petalCount, Math.max(0.5, r*0.055));
+}
+function drawMandalaBand(doc, cx, cy, rx, ry, count){
+  // small diamond studs arranged in an arc/ellipse band, for trim along a body edge
+  doc.setDrawColor(30,42,58); doc.setLineWidth(0.6);
+  for(let i=0;i<count;i++){
+    const ang = (Math.PI*2/count)*i;
+    const x = cx+Math.cos(ang)*rx, y = cy+Math.sin(ang)*ry;
+    doc.circle(x, y, 1.1, "S");
+  }
+}
+
+function drawSun(doc, cx, cy, r){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.2);
+  doc.circle(cx, cy, r, "S");
+  for(let i=0;i<12;i++){
+    const ang = (Math.PI*2/12)*i;
+    const x1 = cx + Math.cos(ang)*(r+3), y1 = cy + Math.sin(ang)*(r+3);
+    const x2 = cx + Math.cos(ang)*(r+10), y2 = cy + Math.sin(ang)*(r+10);
+    doc.line(x1,y1,x2,y2);
+  }
+  drawMandalaFlower(doc, cx, cy, r*0.62, 8);
+}
+function drawCloud(doc, cx, cy, scale){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.1);
+  doc.circle(cx-11*scale, cy+2*scale, 7*scale, "S");
+  doc.circle(cx-2*scale, cy-5*scale, 9*scale, "S");
+  doc.circle(cx+9*scale, cy, 8*scale, "S");
+  doc.circle(cx+16*scale, cy+3*scale, 5.5*scale, "S");
+  doc.setLineWidth(0.5);
+  drawDotRing(doc, cx-2*scale, cy-1*scale, 3.2*scale, 6, 0.5*scale);
+}
+function drawBird(doc, cx, cy, scale){
+  scale = scale || 1;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(0.8);
+  doc.lines([[6*scale,-4*scale],[6*scale,4*scale]], cx-6*scale, cy, [1,1], "S", false);
+  doc.lines([[6*scale,4*scale],[6*scale,-4*scale]], cx, cy, [1,1], "S", false);
+}
+function drawFlower(doc, cx, cy, scale){
+  scale = scale || 1;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(0.7);
+  doc.line(cx, cy, cx, cy+8*scale);
+  drawMandalaFlower(doc, cx, cy, 3.6*scale, 6);
+}
+function drawGrassTufts(doc, y, xStart, xEnd, count){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(0.7);
+  for(let i=0;i<count;i++){
+    const x = xStart + (xEnd-xStart)*(i+0.5)/count + (Math.sin(i*7)*3);
+    doc.lines([[-2.5,-6]], x, y, [1,1], "S", false);
+    doc.lines([[0,-7]], x, y, [1,1], "S", false);
+    doc.lines([[2.5,-6]], x, y, [1,1], "S", false);
+  }
+}
+function drawGroundLine(doc, y){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.1);
+  doc.line(20, y, PAGE_W-20, y);
+}
+function drawPineTree(doc, cx, baseY, h){
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.1);
+  doc.line(cx-2, baseY, cx-2, baseY-h*0.2);
+  doc.line(cx+2, baseY, cx+2, baseY-h*0.2);
+  doc.line(cx-2, baseY-h*0.2, cx+2, baseY-h*0.2);
+  for(let i=0;i<3;i++){
+    const y0 = baseY - h*0.2 - i*h*0.28;
+    const w = (h*0.32) - i*h*0.06;
+    doc.lines([[w/2,-h*0.28],[w/2,h*0.28],[-w,0]], cx-w/2, y0, [1,1], "S", true);
+  }
+}
+function pill(doc, x, y, w, h, style){
+  doc.roundedRect(x, y, w, h, Math.min(w,h)/2, Math.min(w,h)/2, style||"S");
+}
+
+/* ---- Vehicles: reused on both coloring pages (detailed mandala style)
+       and tiny maze/bingo markers (simple, clean silhouette) ---- */
+function drawVehicle(doc, mode, cx, cy, scale){
+  const s = mode==="plane" ? scale*0.82 : scale;
+  const detailed = scale >= 0.5;
+  doc.setDrawColor(30,42,58); doc.setLineWidth((detailed?1.3:1.1)*s);
+  if(mode==="plane"){
+    pill(doc, cx-58*s, cy-11*s, 116*s, 22*s, "S");
+    doc.triangle(cx-8*s,cy-9*s, cx-34*s,cy-32*s, cx+2*s,cy-9*s, "S");
+    doc.triangle(cx+18*s,cy-10*s, cx+8*s,cy-24*s, cx+30*s,cy-10*s, "S");
+    doc.triangle(cx+50*s,cy-11*s, cx+66*s,cy, cx+50*s,cy+3*s, "S");
+    pill(doc, cx-40*s, cy-6*s, 34*s, 13*s, "S"); // cockpit strip
+    doc.setLineWidth(0.8*s);
+    doc.line(cx-56*s, cy+5*s, cx+52*s, cy+5*s); // belly stripe
+    doc.triangle(cx+58*s,cy-4*s, cx+64*s,cy-4*s, cx+61*s,cy-9*s, "S"); // tail flag
+    if(detailed){
+      drawMandalaFlower(doc, cx-20*s, cy-19*s, 8*s, 8);   // left wing
+      drawMandalaFlower(doc, cx+22*s, cy-16*s, 6*s, 8);   // right wing
+      drawMandalaFlower(doc, cx+14*s, cy, 5*s, 6);        // fuselage porthole
+      drawDotRing(doc, cx-40*s, cy-0.5*s, 6*s, 10, 0.6*s); // nose ring
+    } else {
+      for(let i=0;i<3;i++) doc.circle(cx+5*s+i*15*s, cy, 3.2*s, "S");
+    }
+  } else if(mode==="train"){
+    pill(doc, cx-54*s, cy-6*s, 108*s, 32*s, "S");
+    doc.roundedRect(cx-54*s, cy-34*s, 30*s, 30*s, 8*s, 8*s, "S");
+    doc.circle(cx-39*s, cy-38*s, 3.2*s, "S");
+    doc.line(cx-39*s, cy-41*s, cx-39*s, cy-48*s);
+    doc.setDrawColor(178,58,46); doc.setLineWidth(0.9*s);
+    doc.circle(cx-39*s, cy-51*s, 3*s, "S"); doc.circle(cx-42*s, cy-55*s, 2.2*s, "S"); doc.circle(cx-36*s, cy-56*s, 1.6*s, "S");
+    doc.setDrawColor(30,42,58); doc.setLineWidth((detailed?1.3:1.1)*s);
+    [-16,10,36].forEach(dx=> doc.roundedRect(cx+dx*s, cy-16*s, 18*s, 15*s, 3*s, 3*s, "S"));
+    doc.setLineWidth(0.7*s);
+    doc.line(cx-54*s, cy+2*s, cx+54*s, cy+2*s); // side stripe
+    doc.setLineWidth((detailed?1.3:1.1)*s);
+    [-32,0,32].forEach(dx=>{ doc.circle(cx+dx*s, cy+16*s, 8*s, "S"); doc.circle(cx+dx*s, cy+16*s, 2.8*s, "S"); });
+    doc.line(cx-52*s, cy+30*s, cx+52*s, cy+30*s); // track rail hint
+    if(detailed){
+      drawMandalaFlower(doc, cx-39*s, cy+6*s, 6*s, 8);
+      drawDotRing(doc, cx-39*s, cy-19*s, 10*s, 8, 0.6*s);
+    }
+  } else if(mode==="boat"){
+    doc.ellipse(cx, cy+16*s, 48*s, 16*s, "S");
+    doc.roundedRect(cx-16*s, cy-8*s, 34*s, 20*s, 5*s, 5*s, "S");
+    doc.line(cx+24*s, cy+2*s, cx+24*s, cy-40*s);
+    doc.triangle(cx+24*s,cy-40*s, cx+50*s,cy-2*s, cx+24*s,cy-2*s, "S");
+    doc.setLineWidth(0.8*s);
+    doc.triangle(cx+24*s,cy-2*s, cx+8*s,cy-30*s, cx+24*s,cy-30*s, "S"); // second sail
+    doc.setLineWidth((detailed?1.3:1.1)*s);
+    doc.setLineWidth(0.9*s);
+    for(let i=0;i<3;i++){
+      const wy = cy+34*s+i*6*s;
+      doc.lines([[8*s,-2.5*s],[8*s,2.5*s],[8*s,-2.5*s],[8*s,2.5*s]], 22, wy, [1,1], "S", false);
+    }
+    if(detailed){
+      drawMandalaFlower(doc, cx-1*s, cy+13*s, 6*s, 8);
+      drawMandalaFlower(doc, cx+37*s, cy-21*s, 5*s, 8);
+      drawMandalaFlower(doc, cx+15*s, cy-16*s, 4*s, 6);
+    } else {
+      for(let i=0;i<2;i++) doc.circle(cx-6*s+i*14*s, cy, 3*s, "S");
+    }
+    drawBird(doc, cx+30*s, cy-55*s, 0.9*s);
+    drawBird(doc, cx+45*s, cy-48*s, 0.7*s);
+  } else {
+    // Single closed body silhouette: rear bumper -> trunk -> roof -> windshield -> hood -> front bumper -> rocker
+    // Front (headlight/hood) is +x, rear (trunk/exhaust) is -x.
+    doc.lines([
+      [-2*s,-6*s],   [8*s,-8*s],    [12*s,-4*s],   // rear bumper corner -> up to trunk
+      [10*s,-16*s],                                 // trunk -> roofline (rear pillar)
+      [28*s,0],                                      // flat roof
+      [10*s,16*s],                                   // roofline -> windshield base (front pillar)
+      [12*s,5*s],    [14*s,5*s],                     // cowl -> hood
+      [6*s,6*s],                                      // hood -> front fender
+      [-2*s,6*s],                                     // front bumper corner
+      [-26*s,2*s],                                    // rocker (front wheel to mid)
+      [-44*s,0],                                       // rocker (mid to rear wheel)
+      [-26*s,-6*s]                                      // rear bumper bottom back up to start
+    ], cx-50*s, cy+10*s, [1,1], "S", true);
+
+    // beltline + B-pillar dividing the cabin glass
+    doc.setLineWidth(1.0*s);
+    doc.line(cx-32*s, cy-8*s, cx+16*s, cy-8*s);
+    doc.line(cx-8*s, cy-24*s, cx-8*s, cy-8*s);
+    doc.line(cx-8*s, cy-8*s, cx-8*s, cy+10*s);
+    doc.setLineWidth((detailed?1.3:1.1)*s);
+
+    // wheels
+    doc.circle(cx-20*s, cy+20*s, 12*s, "S"); doc.circle(cx-20*s, cy+20*s, 4.5*s, "S");
+    doc.circle(cx+18*s, cy+20*s, 12*s, "S"); doc.circle(cx+18*s, cy+20*s, 4.5*s, "S");
+    doc.setLineWidth(0.7*s);
+    [-20,18].forEach(dx=>{
+      for(let i=0;i<6;i++){ const ang=(Math.PI*2/6)*i; doc.line(cx+dx*s,cy+20*s, cx+dx*s+Math.cos(ang)*4.5*s, cy+20*s+Math.sin(ang)*4.5*s); }
+    });
+    doc.setLineWidth((detailed?1.3:1.1)*s);
+
+    // headlight + front bumper detail (front = +x)
+    doc.circle(cx+44*s, cy+10*s, 2.6*s, "F");
+    doc.roundedRect(cx+34*s, cy+13*s, 10*s, 5*s, 1.2*s, 1.2*s, "S"); // grille
+
+    // taillight + license plate + exhaust (rear = -x)
+    doc.circle(cx-48*s, cy+8*s, 2.2*s, "F");
+    doc.roundedRect(cx-42*s, cy+13*s, 14*s, 6*s, 1.5*s, 1.5*s, "S"); // license plate
+    doc.setLineWidth(0.8*s);
+    doc.circle(cx-54*s, cy+16*s, 1.8*s, "S"); doc.circle(cx-59*s, cy+18*s, 1.3*s, "S"); // exhaust puffs
+
+    // door handle
+    doc.setLineWidth(0.8*s);
+    doc.line(cx-2*s, cy-1*s, cx+5*s, cy-1*s);
+
+    if(detailed){
+      drawMandalaFlower(doc, cx-14*s, cy+1*s, 4.5*s, 6); // rear door panel
+    }
+  }
+}
+
+/* ---- Animals, one per region — mandala-decorated bodies ---- */
+function drawAnimalScene(doc, regionType, difficulty, scale){
+  const s = scale || 1;
+  const cx = PAGE_W/2, cy = 175;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.3*s);
+  if(regionType==='farm'){
+    // Cow: body, head with snout, ears, small horns, 4 legs, tail, spots
+    pill(doc, cx-38*s, cy-16*s, 76*s, 32*s, "S"); // body
+    doc.circle(cx-46*s, cy-26*s, 13*s, "S"); // head
+    doc.ellipse(cx-59*s, cy-21*s, 8*s, 6*s, "S"); // snout
+    doc.circle(cx-62*s, cy-23*s, 1.4*s, "F"); doc.circle(cx-62*s, cy-19*s, 1.4*s, "F"); // nostrils
+    doc.circle(cx-50*s, cy-30*s, 1.6*s, "F"); // eye
+    doc.ellipse(cx-53*s, cy-38*s, 4*s, 7*s, "S"); doc.ellipse(cx-38*s, cy-38*s, 4*s, 7*s, "S"); // ears
+    doc.setLineWidth(1.1*s);
+    doc.line(cx-51*s, cy-38*s, cx-54*s, cy-46*s); doc.line(cx-41*s, cy-38*s, cx-38*s, cy-46*s); // horns
+    doc.setLineWidth(1.3*s);
+    [cx-30*s,cx-12*s,cx+10*s,cx+26*s].forEach(x=> pill(doc, x-3.5*s, cy+14*s, 7*s, 18*s, "S")); // 4 legs
+    doc.lines([[7*s,9*s],[-3*s,9*s]], cx+38*s, cy-8*s, [1,1], "S", false); // tail
+    doc.circle(cx+42*s, cy+11*s, 3*s, "S"); // tail tuft
+    doc.ellipse(cx-14*s, cy-6*s, 9*s, 7*s, "S"); // spot 1
+    doc.ellipse(cx+12*s, cy+4*s, 7*s, 6*s, "S"); // spot 2
+  } else if(regionType==='coastal'){
+    doc.ellipse(cx,cy,34*s,20*s,"S");
+    for(let i=0;i<3;i++){ doc.line(cx-30*s, cy-6*s+i*8*s, cx-52*s, cy-14*s+i*10*s); doc.line(cx+30*s, cy-6*s+i*8*s, cx+52*s, cy-14*s+i*10*s); }
+    doc.circle(cx-14*s,cy-24*s,4*s,"F"); doc.circle(cx-4*s,cy-24*s,4*s,"F");
+    doc.line(cx-14*s,cy-20*s,cx-14*s,cy-8*s); doc.line(cx-4*s,cy-20*s,cx-4*s,cy-8*s);
+    drawMandalaFlower(doc, cx, cy, 12*s, 10);
+  } else if(regionType==='desert'){
+    pill(doc, cx-9*s, cy-38*s, 18*s, 60*s, "S");
+    pill(doc, cx-28*s, cy-14*s, 15*s, 34*s, "S");
+    pill(doc, cx+13*s, cy-24*s, 15*s, 34*s, "S");
+    drawMandalaFlower(doc, cx, cy-2*s, 6*s, 8);
+    drawDotRing(doc, cx, cy-24*s, 4.5*s, 8, 0.5*s);
+  } else if(regionType==='mountain' || regionType==='park'){
+    doc.ellipse(cx,cy+8*s,32*s,20*s,"S");
+    doc.circle(cx-30*s,cy-14*s,15*s,"S");
+    doc.lines([[-4*s,-16*s],[8*s,4*s]], cx-38*s, cy-24*s, [1,1], "S", false);
+    doc.lines([[4*s,-16*s],[-8*s,4*s]], cx-22*s, cy-24*s, [1,1], "S", false);
+    [cx-22*s,cx-7*s,cx+7*s,cx+22*s].forEach(x=> pill(doc, x-3*s, cy+26*s, 6*s, 14*s, "S"));
+    drawMandalaFlower(doc, cx+2*s, cy+10*s, 10*s, 8);
+    drawDotRing(doc, cx-30*s, cy-14*s, 10*s, 8, 0.6*s);
+  } else {
+    doc.ellipse(cx,cy+6*s,30*s,20*s,"S");
+    doc.circle(cx-28*s,cy-16*s,15*s,"S");
+    doc.ellipse(cx-40*s,cy-22*s,6*s,11*s,"S"); doc.ellipse(cx-16*s,cy-22*s,6*s,11*s,"S");
+    [cx-20*s,cx-6*s,cx+6*s,cx+20*s].forEach(x=> pill(doc, x-3*s, cy+24*s, 6*s, 14*s, "S"));
+    doc.setLineWidth(1.3*s); doc.lines([[8*s,-6*s],[6*s,4*s]], cx+28*s, cy+2*s, [1,1], "S", false);
+    doc.circle(cx-28*s,cy-10*s,1.6*s,"F");
+    drawMandalaFlower(doc, cx, cy+8*s, 10*s, 8);
+    drawDotRing(doc, cx-28*s, cy-16*s, 9*s, 8, 0.55*s);
+  }
+}
+function drawNatureScene(doc){
+  const cy = 205;
+  drawSun(doc, PAGE_W-52, 55, 19);
+  drawCloud(doc, 60, 50, 1.2);
+  drawBird(doc, 115, 38, 1); drawBird(doc, 132, 46, 0.75);
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.3);
+  doc.lines([[52,-46],[52,46]], PAGE_W/2-88, cy, [1,1], "S", false);
+  doc.lines([[45,-38],[45,38]], PAGE_W/2-2, cy+10, [1,1], "S", false);
+  drawPineTree(doc, PAGE_W/2+62, cy+26, 58);
+  drawPineTree(doc, PAGE_W/2+84, cy+30, 40);
+  drawGroundLine(doc, cy+34);
+  drawGrassTufts(doc, cy+34, 22, PAGE_W-22, 20);
+  drawFlower(doc, 40, cy+34, 1.2); drawFlower(doc, PAGE_W/2-115, cy+34, 1); drawFlower(doc, PAGE_W-40, cy+34, 1.2);
+}
+function drawRoadScene(doc){
+  const topY = 46, baseY = 238;
+  drawSun(doc, 50, 55, 18);
+  drawCloud(doc, PAGE_W-56, 50, 1.2);
+  drawBird(doc, 95, 38, 0.9); drawBird(doc, 110, 44, 0.7);
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.3);
+  doc.line(PAGE_W/2-7, topY, PAGE_W/2-82, baseY);
+  doc.line(PAGE_W/2+7, topY, PAGE_W/2+82, baseY);
+  for(let i=0;i<8;i++){
+    const t0 = i/8, t1 = t0+0.055;
+    doc.line(PAGE_W/2, topY+(baseY-topY)*t0, PAGE_W/2, topY+(baseY-topY)*t1);
+  }
+  const signY = topY + (baseY-topY)*0.38;
+  doc.roundedRect(PAGE_W/2+50, signY-14, 26, 30, 5, 5, "S");
+  doc.setFontSize(8); doc.setFont("helvetica","bold"); doc.setTextColor(30,42,58);
+  doc.text("ADVENTURE\nAHEAD", PAGE_W/2+63, signY, {align:"center"});
+  doc.line(PAGE_W/2+63, signY+16, PAGE_W/2+63, baseY-20);
+  drawPineTree(doc, PAGE_W/2-105, baseY-25, 46);
+  drawFlower(doc, PAGE_W/2-125, baseY-8, 1.1);
+  drawFlower(doc, PAGE_W/2+105, baseY-14, 1.1);
+  drawGrassTufts(doc, baseY, 20, PAGE_W/2-90, 6);
+  drawGrassTufts(doc, baseY, PAGE_W/2+90, PAGE_W-20, 6);
+}
+function renderColoringPage(doc, mode, difficulty, sceneIndex, regionType){
+  doc.addPage(); addHeader(doc, "Coloring Page");
+  const scene = (sceneIndex||0) % 4;
+  if(scene===0){
+    drawSun(doc, PAGE_W-46, 55, 20);
+    drawCloud(doc, 50, 55, 1.3);
+    drawBird(doc, 130, 42, 1);
+    drawVehicle(doc, mode, PAGE_W/2, 178, 1.7);
+    if(difficulty !== 'easy'){
+      const extra = difficulty==='hard' ? 14 : 7;
+      doc.setDrawColor(30,42,58);
+      for(let i=0;i<extra;i++) doc.circle(25+Math.random()*166, 75+Math.random()*55, 1.4, "S");
+    }
+    drawGroundLine(doc, 236);
+    drawGrassTufts(doc, 236, 22, PAGE_W-22, 18);
+    drawFlower(doc, 34, 236, 1.2); drawFlower(doc, PAGE_W-34, 236, 1.2);
+  } else if(scene===1){
+    drawSun(doc, 46, 55, 18);
+    drawCloud(doc, PAGE_W-58, 50, 1.3);
+    drawBird(doc, PAGE_W-120, 40, 1);
+    drawAnimalScene(doc, regionType, difficulty, 1.6);
+    drawGroundLine(doc, 236);
+    drawGrassTufts(doc, 236, 22, PAGE_W-22, 18);
+    drawFlower(doc, 30, 236, 1.1); drawFlower(doc, PAGE_W-30, 236, 1.1);
+  } else if(scene===2){
+    drawNatureScene(doc);
+  } else {
+    drawRoadScene(doc);
+  }
+  doc.setFontSize(11); doc.setTextColor(79,92,107);
+  doc.text("Color me in!", PAGE_W/2, 262, {align:"center"});
+}
+
+/* ============================== STATE BIRDS ============================== */
+function drawBirdBody(doc, family, cx, cy, scale){
+  const s = scale||1;
+  doc.setDrawColor(30,42,58); doc.setLineWidth(1.3*s);
+  const bodyRx = family==='groundbird' ? 34*s : 30*s;
+  const bodyRy = family==='groundbird' ? 24*s : 20*s;
+  const neckLen = family==='waterbird' ? 24*s : 6*s;
+  const headCx = cx + bodyRx*0.55, headCy = cy - bodyRy*0.7 - neckLen*0.7;
+  if(family==='waterbird'){
+    doc.lines([[headCx-(cx+bodyRx*0.3), headCy-(cy-bodyRy*0.35)]], cx+bodyRx*0.3, cy-bodyRy*0.35, [1,1], "S", false);
+  }
+  doc.ellipse(cx, cy, bodyRx, bodyRy, "S"); // body
+  doc.ellipse(cx-bodyRx*0.12, cy+bodyRy*0.05, bodyRx*0.52, bodyRy*0.5, "S"); // folded wing
+  doc.setLineWidth(0.8*s);
+  for(let i=0;i<3;i++) doc.line(cx+bodyRx*0.2-i*bodyRx*0.18, cy+bodyRy*0.32, cx-bodyRx*0.15-i*bodyRx*0.18, cy+bodyRy*0.42);
+  doc.setLineWidth(1.3*s);
+  if(family==='groundbird'){
+    doc.triangle(cx-bodyRx*0.95,cy-bodyRy*0.05, cx-bodyRx*1.28,cy-bodyRy*0.3, cx-bodyRx*0.85,cy+bodyRy*0.3, "S");
+  } else {
+    doc.triangle(cx-bodyRx*0.95,cy, cx-bodyRx*1.55,cy-bodyRy*0.32, cx-bodyRx*1.42,cy+bodyRy*0.32, "S");
+  }
+  const headR = family==='groundbird' ? 13*s : 11*s;
+  doc.circle(headCx, headCy, headR, "S"); // head
+  if(family==='songbird-crest'){
+    doc.lines([[-3.5*s,-12*s],[7*s,0.5*s]], headCx-3*s, headCy-headR*0.75, [1,1], "S", false);
+  } else if(family==='groundbird'){
+    doc.lines([[3*s,-10*s],[1*s,3*s]], headCx-1*s, headCy-headR*0.9, [1,1], "S", false);
+  }
+  doc.triangle(headCx+headR*0.85, headCy-2.4*s, headCx+headR*0.85, headCy+3*s, headCx+headR*1.55, headCy+0.4*s, "S"); // beak
+  doc.circle(headCx+headR*0.15, headCy-headR*0.18, 1.5*s, "F"); // eye
+  doc.setLineWidth(1.1*s);
+  const legY = cy+bodyRy*0.82;
+  [cx-bodyRx*0.18, cx+bodyRx*0.12].forEach(lx=>{
+    doc.line(lx, legY, lx, legY+13*s);
+    if(family==='waterbird'){
+      doc.lines([[-4*s,3*s],[8*s,0],[-4*s,-3*s]], lx-4*s, legY+13*s, [1,1], "S", false);
+    } else {
+      doc.line(lx, legY+13*s, lx-4*s, legY+17*s);
+      doc.line(lx, legY+13*s, lx, legY+18*s);
+      doc.line(lx, legY+13*s, lx+4*s, legY+17*s);
+    }
+  });
+}
+function renderStateBirdPage(doc, stateName, index, mode){
+  doc.addPage(); addHeader(doc, "State Bird");
+  const entry = STATE_BIRDS[stateName] || ["Songbird","songbird"];
+  const [birdName, family] = entry;
+  const flip = index % 2 === 1;
+  drawSun(doc, flip ? 44 : PAGE_W-44, 50, 17);
+  drawCloud(doc, flip ? PAGE_W-56 : 56, 56, 1.15);
+  drawBirdBody(doc, family, PAGE_W/2, 172, 1.8);
+  drawGroundLine(doc, 236);
+  drawGrassTufts(doc, 236, 22, PAGE_W-22, 18);
+  drawFlower(doc, 34, 236, 1.15); drawFlower(doc, PAGE_W-34, 236, 1.15);
+  doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(30,42,58);
+  doc.text(birdName, PAGE_W/2, 214, {align:"center"});
+  doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(79,92,107);
+  doc.text(`State bird of ${stateName}`, PAGE_W/2, 223, {align:"center"});
+  doc.setFontSize(11); doc.text("Color me in!", PAGE_W/2, 262, {align:"center"});
+}
+
+/* ============================== LANDMARK STOPS ============================== */
+function renderLandmarkPage(doc, stopName, motifIndex){
+  doc.addPage(); addHeader(doc, "Landmark Stop");
+  const m = motifIndex % 4;
+  const flip = m % 2 === 1;
+  doc.setDrawColor(30,42,58);
+  drawSun(doc, flip ? 44 : PAGE_W-44, 50, 17);
+  drawCloud(doc, flip ? PAGE_W-56 : 56, 56, 1.15);
+  if(m===0){ drawPineTree(doc, 36, 232, 46); drawPineTree(doc, PAGE_W-36, 236, 34); }
+  else if(m===1){ drawFlag(doc, 40, 200, 0.9); drawFlag(doc, PAGE_W-40, 210, 0.7); }
+  else if(m===2){ drawBird(doc, 100, 40, 1); drawBird(doc, 120, 48, 0.75); drawPineTree(doc, PAGE_W-40, 234, 40); }
+  else { drawFlower(doc, 40, 200, 1); drawFlower(doc, PAGE_W-40, 208, 1); }
+
+  const signW = 156, signX = (PAGE_W-signW)/2, signY = 108;
+  doc.setLineWidth(1.4);
+  doc.line(PAGE_W/2-3, signY+50, PAGE_W/2-3, signY+82);
+  doc.line(PAGE_W/2+3, signY+50, PAGE_W/2+3, signY+82);
+  doc.roundedRect(signX, signY, signW, 50, 6, 6, "S");
+  doc.setLineWidth(0.6); doc.setDrawColor(216,205,178);
+  doc.roundedRect(signX+5, signY+5, signW-10, 40, 4, 4, "S");
+  doc.setDrawColor(30,42,58);
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(30,42,58);
+  doc.text("WELCOME TO", PAGE_W/2, signY+20, {align:"center"});
+  doc.setFontSize(15);
+  doc.text((stopName||"OUR STOP").toUpperCase(), PAGE_W/2, signY+34, {align:"center", maxWidth: signW-16});
+
+  drawGroundLine(doc, 236);
+  drawGrassTufts(doc, 236, 22, PAGE_W-22, 18);
+  doc.setFontSize(11); doc.setFont("helvetica","normal"); doc.setTextColor(79,92,107);
+  doc.text("A stop along our route — color me in!", PAGE_W/2, 262, {align:"center"});
+}
+
+const BINGO_FILLER = [
+  "A red car","A cow","A dog looking out a window","A cloud shaped like something",
+  "A gas station","A bridge","A truck","A billboard","A rainbow","A motorcycle",
+  "A school bus","A stop sign","A water tower","Someone waving","A license plate from another state",
+  "A river","A barn","A tractor","A church","A train","A boat","A flag","A tunnel","A hill","A fast food sign"
+];
+function phraseForSight(word){
+  const lower = word.toLowerCase();
+  const capped = lower.charAt(0).toUpperCase() + lower.slice(1);
+  if(lower.endsWith('s')) return capped; // already plural, e.g. "Stations"
+  const vowels = ['a','e','i','o','u'];
+  const article = vowels.includes(lower[0]) ? 'An' : 'A';
+  return `${article} ${lower}`;
+}
+function normalizeBingoPhrase(phrase){
+  let w = phrase.toLowerCase().trim();
+  w = w.replace(/^(a|an|the)\s+/, '');       // strip leading article
+  if(w.endsWith('ies')) w = w.slice(0,-3)+'y'; // babies -> baby
+  else if(w.endsWith('s') && !w.endsWith('ss')) w = w.slice(0,-1); // cows -> cow
+  return w;
+}
+function buildBingoItems(sightsList, placeWords, difficulty){
+  const n = difficulty==='easy' ? 9 : difficulty==='medium' ? 16 : 25;
+  const themed = sightsList.map(phraseForSight);
+  const seen = new Set(themed.map(normalizeBingoPhrase));
+  const filler = BINGO_FILLER.filter(f => !seen.has(normalizeBingoPhrase(f)));
+  const pool = [...themed, ...filler];
+  while(pool.length < n) pool.push(...filler);
+  return pool.slice(0, n).sort(()=>Math.random()-0.5);
+}
+function renderBingoPage(doc, items, difficulty, mode){
+  doc.addPage(); addHeader(doc, "I-Spy Bingo");
+  const side = difficulty==='easy' ? 3 : difficulty==='medium' ? 4 : 5;
+  const gridSize = 190, cell = gridSize/side;
+  const startX = (PAGE_W-gridSize)/2, startY = 36;
+  const freeIndex = side % 2 === 1 ? Math.floor(side*side/2) : -1;
+  doc.setDrawColor(216,205,178); doc.setLineWidth(0.6);
+  doc.setFont("helvetica","normal"); doc.setFontSize(side>=5 ? 9 : side===4 ? 10.5 : 13);
+  doc.setTextColor(30,42,58);
+  for(let r=0;r<side;r++){
+    for(let c=0;c<side;c++){
+      const x = startX + c*cell, y = startY + r*cell;
+      const idx = r*side+c;
+      doc.rect(x, y, cell, cell, "S");
+      if(idx===freeIndex){
+        drawVehicle(doc, mode||"car", x+cell/2, y+cell/2-2, Math.max(0.3, cell/95));
+        doc.setFont("helvetica","bold"); doc.setFontSize(8);
+        doc.text("FREE SPACE", x+cell/2, y+cell-6, {align:"center"});
+        doc.setFont("helvetica","normal"); doc.setFontSize(side>=5 ? 9 : side===4 ? 10.5 : 13);
+        doc.setFillColor(30,42,58); doc.rect(x+4, y+4, 7, 7, "F");
+      } else {
+        doc.rect(x+4, y+4, 7, 7, "S"); // checkbox
+        const text = items[r*side+c] || "";
+        doc.text(text, x+cell/2, y+cell/2+4, {align:"center", maxWidth: cell-8});
+      }
+    }
+  }
+  doc.setFontSize(12); doc.setTextColor(79,92,107);
+  doc.text("Check a box every time you spot one!", PAGE_W/2, startY+gridSize+16, {align:"center"});
+}
+
+/* ============================== CONNECT THE DOTS ============================== */
+function starPoints(){
+  const pts = [];
+  for(let i=0;i<10;i++){
+    const ang = (Math.PI*2/10)*i - Math.PI/2;
+    const r = i%2===0 ? 84 : 38;
+    pts.push([Math.cos(ang)*r, Math.sin(ang)*r]);
+  }
+  return pts;
+}
+function subdivide(points, times){
+  let pts = points;
+  for(let t=0;t<times;t++){
+    const next = [];
+    for(let i=0;i<pts.length;i++){
+      const a = pts[i], b = pts[(i+1)%pts.length];
+      next.push(a, [(a[0]+b[0])/2, (a[1]+b[1])/2]);
+    }
+    pts = next;
+  }
+  return pts;
+}
+function generateDotsShape(shapeIndex, difficulty){
+  const extra = difficulty==='easy' ? 0 : difficulty==='medium' ? 1 : 2;
+  if(shapeIndex % 2 === 0){
+    return subdivide(starPoints(), extra);
+  } else {
+    const n = difficulty==='easy' ? 12 : difficulty==='medium' ? 20 : 30;
+    const pts = [];
+    for(let i=0;i<n;i++){
+      const ang = (Math.PI*2/n)*i - Math.PI/2;
+      pts.push([Math.cos(ang)*82, Math.sin(ang)*82]);
+    }
+    return pts;
+  }
+}
+function renderDotsPage(doc, shapeIndex, difficulty){
+  doc.addPage(); addHeader(doc, "Connect the Dots");
+  const cx = PAGE_W/2, cy = 158;
+  const pts = generateDotsShape(shapeIndex, difficulty);
+  doc.setFillColor(30,42,58);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(30,42,58);
+  pts.forEach((p,i)=>{
+    const x = cx+p[0], y = cy+p[1];
+    doc.circle(x, y, 1.3, "F");
+    const lx = x + (p[0]>=0 ? 5 : -5), ly = y + (p[1]>=0 ? 5 : -3.5);
+    doc.text(String(i+1), lx, ly, {align: p[0]>=0 ? "left" : "right"});
+  });
+  doc.setFontSize(10); doc.setTextColor(79,92,107);
+  doc.text("Connect the dots in order — what do you get?", cx, 258, {align:"center"});
+}
+
+/* ============================== MATH MINI-PUZZLES ============================== */
+function generateMathProblems(difficulty, tripWord){
+  const problems = [];
+  if(difficulty==='easy'){
+    for(let i=0;i<6;i++){
+      const n = 2 + Math.floor(Math.random()*8);
+      problems.push({type:'count', n, answerSpace:true});
+    }
+  } else if(difficulty==='medium'){
+    for(let i=0;i<6;i++){
+      const a = 2 + Math.floor(Math.random()*15), b = 1 + Math.floor(Math.random()*10);
+      const op = Math.random()<0.5 ? '+' : '-';
+      const [x,y] = op==='-' && a<b ? [b,a] : [a,b];
+      problems.push({type:'text', text:`${x} ${op} ${y} = ____`, answerSpace:false});
+    }
+  } else {
+    const templates = [
+      n => `If you spot ${n} ${tripWord} at one stop and ${n+3} at the next, how many is that in all?`,
+      n => `You count ${n*2} cars in 2 minutes. About how many is that per minute?`,
+      n => `Your trip has ${n} stops. If each stop takes 15 minutes, how many minutes is that in total?`
+    ];
+    for(let i=0;i<5;i++){
+      const n = 3 + Math.floor(Math.random()*9);
+      const t = templates[Math.floor(Math.random()*templates.length)];
+      problems.push({type:'text', text:t(n), answerSpace:true});
+    }
+  }
+  return problems;
+}
+function drawTinyStar(doc, cx, cy, r){
+  const pts = [];
+  for(let i=0;i<10;i++){
+    const ang = (Math.PI*2/10)*i - Math.PI/2;
+    const rr = i%2===0 ? r : r*0.45;
+    pts.push([Math.cos(ang)*rr, Math.sin(ang)*rr]);
+  }
+  doc.setFillColor(201,150,43);
+  const path = pts.slice(1).map((p,i)=> [p[0]-pts[i][0], p[1]-pts[i][1]]);
+  doc.lines(path, cx+pts[0][0], cy+pts[0][1], [1,1], "F", true);
+}
+function renderMathPage(doc, difficulty, tripWord, mode){
+  doc.addPage(); addHeader(doc, "Math Mini-Puzzles");
+  drawVehicle(doc, mode||"car", PAGE_W-22, 31, 0.13);
+  let y = 55;
+  doc.setFont("helvetica","normal"); doc.setFontSize(difficulty==='hard' ? 15 : 19); doc.setTextColor(30,42,58);
+  generateMathProblems(difficulty, tripWord).forEach(p=>{
+    if(p.type==='count'){
+      doc.text("How many?", 24, y);
+      const startX = 80;
+      for(let i=0;i<p.n;i++) drawTinyStar(doc, startX + i*15, y-3, 5);
+      y += 18;
+      doc.setDrawColor(216,205,178); doc.setLineWidth(0.7); doc.line(24, y, 80, y);
+      y += 22;
+    } else {
+      doc.text(p.text, 24, y, {maxWidth: PAGE_W-48});
+      y += difficulty==='hard' ? 24 : 18;
+      doc.setDrawColor(216,205,178); doc.setLineWidth(0.7); doc.line(24, y, 110, y);
+      y += 22;
+    }
+  });
+}
+
+function renderAnswerKeyIntro(doc){
+  doc.addPage(); addHeader(doc,"Answer Key");
+  doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(79,92,107);
+  doc.text("Solutions for the puzzles in this book start on the next page.", 20, 45);
+}
+
+/* ============================== BUILD FLOW ============================== */
+refreshButtonLabel();
+
+/* ============================== VARIETY ENGINE ==============================
+   Builds the order of activity pages for one book. Rules:
+   - Every checked activity type appears at least once before any type repeats.
+   - 'coloring' gets extra repeat allowance up to coloringVariety (the number of
+     distinct scenes actually available — real generated art if deployed, or the
+     4 built-in vector templates otherwise) so it never visibly repeats itself
+     more than the available art supports.
+   - Once every checked type — including coloring, up to its cap — has had a
+     turn, remaining budget cycles through ALL checked types evenly (fresh
+     reshuffled laps), so a long book with few checked types doesn't dump most
+     of its pages on one repeated scene.
+   - The order is freshly shuffled per book, so two books with the same
+     checked activities don't produce the same page sequence. */
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function buildActivitySequence(activityKeys, targetCount, coloringVariety){
+  if(!activityKeys.length || targetCount<=0) return [];
+  const hasColoring = activityKeys.includes('coloring');
+  const others = activityKeys.filter(k=>k!=='coloring');
+  const cap = hasColoring ? Math.max(1, coloringVariety || 4) : 0;
+
+  if(!others.length){
+    // only coloring (or nothing else) checked -> just repeat it, nothing else to do
+    return new Array(targetCount).fill('coloring');
+  }
+
+  // First lap: each non-coloring type once, plus coloring up to its cap
+  // (only as many copies as we actually have room/variety for), all shuffled
+  // together so coloring isn't clumped.
+  let firstLap = shuffleArr(others);
+  if(hasColoring){
+    const colorCount = Math.min(cap, Math.max(0, targetCount - firstLap.length));
+    firstLap = shuffleArr(firstLap.concat(new Array(colorCount).fill('coloring')));
+  }
+
+  const sequence = [];
+  let lap = firstLap, i = 0;
+  while(sequence.length < targetCount){
+    if(i >= lap.length){
+      // subsequent laps: cycle ALL checked types evenly (coloring no longer
+      // privileged — everything shares the remaining budget fairly)
+      let next = shuffleArr(activityKeys);
+      if(next.length>1 && lap.length && next[0]===lap[lap.length-1]) [next[0],next[1]] = [next[1],next[0]];
+      lap = next; i = 0;
+    }
+    sequence.push(lap[i++]);
+  }
+  return sequence;
+}
+
+document.getElementById('generateBtn').addEventListener('click', async ()=>{
+  if(!hasPaid){
+    saveFormState();
+    window.location.href = STRIPE_LINKS[bookTier];
+    return;
+  }
+  const btn = document.getElementById('generateBtn');
+  const status = document.getElementById('status');
+  btn.disabled = true; status.textContent = "Building your book…";
+
+  await new Promise(r=>setTimeout(r,50));
+
+  const name = document.getElementById('childName').value.trim();
+  const from = document.getElementById('fromCity').value.trim();
+  const to = document.getElementById('toCity').value.trim();
+  const stops = [...document.querySelectorAll('.stop-row input')].map(i=>i.value.trim()).filter(Boolean);
+  const sightsRaw = document.getElementById('sights').value.trim();
+  let sights = sightsRaw ? sightsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const words = buildWordList();
+  if(words.sightsWereAuto) sights = words.simple.map(w => w.charAt(0) + w.slice(1).toLowerCase());
+  const regionType = inferRegionType(from, to, stops);
+
+  status.textContent = "Mapping your route…";
+  const intel = transportMode==='car' ? await fetchRouteIntel(from, to, stops) : null;
+  const routeStates = (intel && intel.states.length) ? intel.states : extractRouteStates(from, to, stops);
+  const landmarkStops = stops.length ? stops : ((intel && intel.waypointCities.length) ? intel.waypointCities : stops);
+  status.textContent = "Building your book…";
+
+  const activities = {};
+  document.querySelectorAll('.actToggle').forEach(cb=>{
+    if(cb.checked){
+      const diff = document.querySelector(`.diffSelect[data-act="${cb.dataset.act}"]`).value;
+      activities[cb.dataset.act] = diff;
+    }
+  });
+
+  const doc = new jspdf.jsPDF({unit:"mm", format:"letter"});
+  renderCover(doc, name, from, to, transportMode);
+  renderRoutePage(doc, from, to, stops, sights, transportMode, words.sightsWereAuto, intel);
+
+  let pageCount = 2; // cover + route
+
+  // Bonus pages built from the actual route: state birds + a landmark stop page per named stop
+  const bonusCap = Math.max(2, Math.floor(bookPages/6));
+  let bonusUsed = 0;
+  routeStates.forEach((st, i)=>{
+    if(bonusUsed >= bonusCap) return;
+    renderStateBirdPage(doc, st, i, transportMode); pageCount++; bonusUsed++;
+  });
+  landmarkStops.forEach((stop, i)=>{
+    if(bonusUsed >= bonusCap) return;
+    renderLandmarkPage(doc, stop, i); pageCount++; bonusUsed++;
+  });
+
+  // build a non-repeating (except coloring, capped to available variety), freshly-shuffled activity sequence
+  const activityKeys = Object.keys(activities);
+  let colorSceneIndex = 0;
+  let dotsSceneIndex = 0;
+  const realArt = await getColoringAssets();
+  const coloringVariety = realArt.length || 4; // 4 = built-in vector scene templates
+  const targetActivityPages = Math.max(0, (bookPages - 1) - pageCount);
+  const sequence = buildActivitySequence(activityKeys, targetActivityPages, coloringVariety);
+  for(const key of sequence){
+    const diff = activities[key];
+    if(key==='wordsearch'){ renderWordSearchPage(doc, generateWordSearch(words.all, diff), transportMode); }
+    else if(key==='maze'){ renderMazePage(doc, generateMaze(diff), transportMode); }
+    else if(key==='scramble'){ renderScramblePage(doc, words.simple, diff, transportMode); }
+    else if(key==='coloring'){ await renderColoringPageSmart(doc, transportMode, diff, colorSceneIndex++, regionType); }
+    else if(key==='bingo'){ renderBingoPage(doc, buildBingoItems(sights, words.all, diff), diff, transportMode); }
+    else if(key==='dots'){ renderDotsPage(doc, dotsSceneIndex++, diff); }
+    else if(key==='math'){ renderMathPage(doc, diff, (words.simple[0]||'car').toLowerCase(), transportMode); }
+    pageCount++;
+  }
+  renderAnswerKeyIntro(doc); pageCount++;
+
+  const fname = `WanderPages_${(name||"MyTrip").replace(/\s+/g,'')}.pdf`;
+  doc.save(fname);
+  try{ localStorage.removeItem(FORM_STATE_KEY); } catch(e){}
+
+  status.textContent = `Done — ${fname} downloaded (${bookPages}-page ${bookTier} book).`;
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
