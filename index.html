@@ -822,6 +822,77 @@ function wordsForScramble(simpleWords, difficulty){
 /* ============================== PDF RENDERING ============================== */
 const PAGE_W = 215.9, PAGE_H = 279.4;
 
+/* ============================== REAL ILLUSTRATION HOOK ==============================
+   Real line-art images, generated once via scripts/generate-coloring-library.js (see
+   that file + assets/coloring/README.md), live in /assets/coloring/. This reads
+   assets/coloring/manifest.json at generate-time to find them — so after running the
+   script once and pushing, no code edits are ever needed to add/remove art; just
+   re-run the script and push again. Until that script has been run, manifest.json
+   won't exist yet and coloring pages automatically use the built-in vector-drawn
+   scenes below — the book always generates successfully either way. */
+let _coloringAssetsCache = null;
+async function getColoringAssets(){
+  if(_coloringAssetsCache) return _coloringAssetsCache;
+  try{
+    const res = await fetch('assets/coloring/manifest.json', {cache:'no-store'});
+    _coloringAssetsCache = res.ok ? await res.json() : [];
+  } catch(e){ _coloringAssetsCache = []; }
+  return _coloringAssetsCache;
+}
+
+async function loadImageDataURL(url){
+  try{
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onloadend = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch(e){ return null; }
+}
+function loadImageElement(dataUrl){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=> resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+/* Fits a real illustration into the coloring-page content box (below the header,
+   above the "Color me in!" caption), preserving aspect ratio, and returns true on
+   success so the caller knows not to fall back to the vector scene. */
+async function tryRenderRealColoringImage(doc, assetPath){
+  const dataUrl = await loadImageDataURL(assetPath);
+  if(!dataUrl) return false;
+  try{
+    const img = await loadImageElement(dataUrl);
+    const boxX = 14, boxY = 32, boxW = PAGE_W-28, boxH = PAGE_H-32-24;
+    const fmt = /\.png$/i.test(assetPath) ? 'PNG' : 'JPEG';
+    const scale = Math.min(boxW/img.naturalWidth, boxH/img.naturalHeight);
+    const w = img.naturalWidth*scale, h = img.naturalHeight*scale;
+    const x = boxX + (boxW-w)/2, y = boxY + (boxH-h)/2;
+    doc.addPage(); addHeader(doc, "Coloring Page");
+    doc.addImage(dataUrl, fmt, x, y, w, h);
+    doc.setFontSize(11); doc.setTextColor(79,92,107);
+    doc.text("Color me in!", PAGE_W/2, PAGE_H-14, {align:"center"});
+    return true;
+  } catch(e){ return false; }
+}
+/* Drop-in replacement for renderColoringPage: uses real art when available,
+   otherwise falls back to the vector-drawn scene automatically. */
+async function renderColoringPageSmart(doc, mode, difficulty, sceneIndex, regionType){
+  const assets = await getColoringAssets();
+  if(assets.length){
+    const path = assets[sceneIndex % assets.length];
+    const ok = await tryRenderRealColoringImage(doc, path);
+    if(ok) return;
+  }
+  renderColoringPage(doc, mode, difficulty, sceneIndex, regionType);
+}
+
 function drawBubbleText(doc, text, cx, cy, fontSize){
   doc.setFont("helvetica","bold");
   doc.setFontSize(fontSize);
@@ -1739,7 +1810,7 @@ document.getElementById('generateBtn').addEventListener('click', async ()=>{
       if(key==='wordsearch'){ renderWordSearchPage(doc, generateWordSearch(words.all, diff), transportMode); }
       else if(key==='maze'){ renderMazePage(doc, generateMaze(diff), transportMode); }
       else if(key==='scramble'){ renderScramblePage(doc, words.simple, diff, transportMode); }
-      else if(key==='coloring'){ renderColoringPage(doc, transportMode, diff, colorSceneIndex++, regionType); }
+      else if(key==='coloring'){ await renderColoringPageSmart(doc, transportMode, diff, colorSceneIndex++, regionType); }
       else if(key==='bingo'){ renderBingoPage(doc, buildBingoItems(sights, words.all, diff), diff, transportMode); }
       else if(key==='dots'){ renderDotsPage(doc, dotsSceneIndex++, diff); }
       else if(key==='math'){ renderMathPage(doc, diff, (words.simple[0]||'car').toLowerCase(), transportMode); }
