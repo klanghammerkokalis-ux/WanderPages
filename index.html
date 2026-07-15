@@ -1744,6 +1744,61 @@ function renderAnswerKeyIntro(doc){
 /* ============================== BUILD FLOW ============================== */
 refreshButtonLabel();
 
+/* ============================== VARIETY ENGINE ==============================
+   Builds the order of activity pages for one book. Rules:
+   - Every checked activity type appears at least once before any type repeats.
+   - 'coloring' is the one type allowed to repeat freely (it draws from a
+     rotating art library, so repeats don't feel repetitive) and is used to
+     fill remaining budget once every other checked type has appeared once.
+   - The order is freshly shuffled per book, so two books with the same
+     checked activities don't produce the same page sequence. */
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function buildActivitySequence(activityKeys, targetCount){
+  if(!activityKeys.length || targetCount<=0) return [];
+  const hasColoring = activityKeys.includes('coloring');
+  const others = shuffleArr(activityKeys.filter(k=>k!=='coloring'));
+
+  if(!others.length){
+    // only coloring (or nothing else) checked -> just repeat it
+    return new Array(targetCount).fill('coloring');
+  }
+  if(!hasColoring){
+    // no coloring: cycle through 'others' in freshly-reshuffled laps, avoiding
+    // an identical type landing on both sides of a lap boundary
+    const sequence = [];
+    let lap = others.slice(), i = 0;
+    while(sequence.length < targetCount){
+      if(i >= lap.length){
+        let next = shuffleArr(others);
+        if(next.length>1 && next[0]===lap[lap.length-1]) [next[0],next[1]] = [next[1],next[0]];
+        lap = next; i = 0;
+      }
+      sequence.push(lap[i++]);
+    }
+    return sequence;
+  }
+  // has coloring: every other checked type gets exactly one evenly-spaced slot,
+  // remaining slots are 'coloring'
+  const slotsForOthers = Math.min(others.length, targetCount);
+  const usedOthers = others.slice(0, slotsForOthers);
+  const positions = new Array(targetCount).fill('coloring');
+  if(slotsForOthers>0){
+    const step = targetCount / slotsForOthers;
+    usedOthers.forEach((key, k)=>{
+      const pos = Math.min(targetCount-1, Math.round(k*step));
+      positions[pos] = key;
+    });
+  }
+  return positions;
+}
+
 document.getElementById('generateBtn').addEventListener('click', async ()=>{
   if(!hasPaid){
     saveFormState();
@@ -1798,26 +1853,22 @@ document.getElementById('generateBtn').addEventListener('click', async ()=>{
     renderLandmarkPage(doc, stop, i); pageCount++; bonusUsed++;
   });
 
-  // repeat activity set to fill roughly to bookPages
+  // build a non-repeating (except coloring), freshly-shuffled activity sequence
   const activityKeys = Object.keys(activities);
-  let round = 0;
   let colorSceneIndex = 0;
   let dotsSceneIndex = 0;
-  while(pageCount < bookPages - 1 && activityKeys.length){
-    for(const key of activityKeys){
-      if(pageCount >= bookPages - 1) break;
-      const diff = activities[key];
-      if(key==='wordsearch'){ renderWordSearchPage(doc, generateWordSearch(words.all, diff), transportMode); }
-      else if(key==='maze'){ renderMazePage(doc, generateMaze(diff), transportMode); }
-      else if(key==='scramble'){ renderScramblePage(doc, words.simple, diff, transportMode); }
-      else if(key==='coloring'){ await renderColoringPageSmart(doc, transportMode, diff, colorSceneIndex++, regionType); }
-      else if(key==='bingo'){ renderBingoPage(doc, buildBingoItems(sights, words.all, diff), diff, transportMode); }
-      else if(key==='dots'){ renderDotsPage(doc, dotsSceneIndex++, diff); }
-      else if(key==='math'){ renderMathPage(doc, diff, (words.simple[0]||'car').toLowerCase(), transportMode); }
-      pageCount++;
-    }
-    round++;
-    if(round > 6) break; // safety
+  const targetActivityPages = Math.max(0, (bookPages - 1) - pageCount);
+  const sequence = buildActivitySequence(activityKeys, targetActivityPages);
+  for(const key of sequence){
+    const diff = activities[key];
+    if(key==='wordsearch'){ renderWordSearchPage(doc, generateWordSearch(words.all, diff), transportMode); }
+    else if(key==='maze'){ renderMazePage(doc, generateMaze(diff), transportMode); }
+    else if(key==='scramble'){ renderScramblePage(doc, words.simple, diff, transportMode); }
+    else if(key==='coloring'){ await renderColoringPageSmart(doc, transportMode, diff, colorSceneIndex++, regionType); }
+    else if(key==='bingo'){ renderBingoPage(doc, buildBingoItems(sights, words.all, diff), diff, transportMode); }
+    else if(key==='dots'){ renderDotsPage(doc, dotsSceneIndex++, diff); }
+    else if(key==='math'){ renderMathPage(doc, diff, (words.simple[0]||'car').toLowerCase(), transportMode); }
+    pageCount++;
   }
   renderAnswerKeyIntro(doc); pageCount++;
 
